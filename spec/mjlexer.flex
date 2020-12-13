@@ -23,7 +23,7 @@ import java_cup.runtime.Symbol;
 LineTerminator = \r|\n|\r\n
 WhiteSpace     = {LineTerminator} | [ \b\t\f]
 
-Identifier = [a-z|A-Z] [a-z|A-Z|0-9|_]*
+Identifier = [a-zA-Z] [a-zA-Z0-9_]*
 
 PrintableChar = [^\r\n\'\\]
 
@@ -57,14 +57,13 @@ extends     { return symbol(sym.EXTENDS, yytext()); }
 continue    { return symbol(sym.CONTINUE, yytext()); }
 case        { return symbol(sym.CASE, yytext()); }
 
-
-/* identifiers */
-{Identifier} { return symbol(sym.IDENT, yytext()); }
-
 /* literals */
 {DecIntegerLiteral} { return symbol(sym.NUMBER, new Integer(yytext())); }
 {CharLiteral}       { return symbol(sym.CHAR, yytext().charAt(1)); }
 {BoolLiteral}       { return symbol(sym.BOOL, new Boolean(yytext())); }
+
+/* identifiers */
+{Identifier} { return symbol(sym.IDENT, yytext()); }
 
 /* operators */
 "+"     { return symbol(sym.PLUS); }
