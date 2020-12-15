@@ -1,0 +1,9 @@
+program var_declarations
+    int i;
+    int x, y, z;
+    int arr[];
+    int arr1[], arr2[];
+    int mixed, arr3[];
+{
+
+}

@@ -1,0 +1,10 @@
+program const_declarations
+    const int i = 10;
+    const char c = 'a';
+    const bool b = true;
+    const int x = 0, y = 1, z = 2;
+    const char c1 = 'a', c2 = 'b';
+    const bool flag1 = true, flag2 = false;
+{
+
+}

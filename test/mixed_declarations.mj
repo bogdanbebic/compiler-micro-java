@@ -1,0 +1,45 @@
+program mixed_declarations
+    const int i = 10;
+    const char c = 'a';
+    const bool b = true;
+    int i;
+    int x, y, z;
+    class Base {}
+    class Derived extends Base {}
+    class BaseWithData {
+        int data;
+    }
+    class DerivedWithData extends BaseWithData {
+        int derived_data;
+    }
+    const int x = 0, y = 1, z = 2;
+    const char c1 = 'a', c2 = 'b';
+    const bool flag1 = true, flag2 = false;
+    int arr[];
+    int arr1[], arr2[];
+    int mixed, arr3[];
+    class BaseWithMethod {
+        {
+            void method() {}
+        }
+    }
+    class DerivedWithMethod extends BaseWithMethod {
+        {
+            void method_derived() {}
+        }
+    }
+    class BaseWithDataWithMethod {
+        int data;
+        {
+            void method() {}
+        }
+    }
+    class DerivedWithDataWithMethod extends BaseWithDataWithMethod {
+        int derived_data;
+        {
+            void method_derived() {}
+        }
+    }
+{
+
+}

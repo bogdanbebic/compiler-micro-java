@@ -1,0 +1,34 @@
+program class_declarations
+    class Base {}
+    class Derived extends Base {}
+    class BaseWithData {
+        int data;
+    }
+    class DerivedWithData extends BaseWithData {
+        int derived_data;
+    }
+    class BaseWithMethod {
+        {
+            void method() {}
+        }
+    }
+    class DerivedWithMethod extends BaseWithMethod {
+        {
+            void method_derived() {}
+        }
+    }
+    class BaseWithDataWithMethod {
+        int data;
+        {
+            void method() {}
+        }
+    }
+    class DerivedWithDataWithMethod extends BaseWithDataWithMethod {
+        int derived_data;
+        {
+            void method_derived() {}
+        }
+    }
+{
+
+}
