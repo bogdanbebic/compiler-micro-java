@@ -38,24 +38,24 @@ Comment = {LineComment}
 %%
 
 /* keywords */
-program     { return symbol(sym.PROGRAM, yytext()); }
-break       { return symbol(sym.BREAK, yytext()); }
-class       { return symbol(sym.CLASS, yytext()); }
-enum        { return symbol(sym.ENUM, yytext()); }
-else        { return symbol(sym.ELSE, yytext()); }
-const       { return symbol(sym.CONST, yytext()); }
-if          { return symbol(sym.IF, yytext()); }
-switch      { return symbol(sym.SWITCH, yytext()); }
-do          { return symbol(sym.DO, yytext()); }
-while       { return symbol(sym.WHILE, yytext()); }
-new         { return symbol(sym.NEW, yytext()); }
-print       { return symbol(sym.PRINT, yytext()); }
-read        { return symbol(sym.READ, yytext()); }
-return      { return symbol(sym.RETURN, yytext()); }
-void        { return symbol(sym.VOID, yytext()); }
-extends     { return symbol(sym.EXTENDS, yytext()); }
-continue    { return symbol(sym.CONTINUE, yytext()); }
-case        { return symbol(sym.CASE, yytext()); }
+program     { return symbol(sym.PROGRAM); }
+break       { return symbol(sym.BREAK); }
+class       { return symbol(sym.CLASS); }
+enum        { return symbol(sym.ENUM); }
+else        { return symbol(sym.ELSE); }
+const       { return symbol(sym.CONST); }
+if          { return symbol(sym.IF); }
+switch      { return symbol(sym.SWITCH); }
+do          { return symbol(sym.DO); }
+while       { return symbol(sym.WHILE); }
+new         { return symbol(sym.NEW); }
+print       { return symbol(sym.PRINT); }
+read        { return symbol(sym.READ); }
+return      { return symbol(sym.RETURN); }
+void        { return symbol(sym.VOID); }
+extends     { return symbol(sym.EXTENDS); }
+continue    { return symbol(sym.CONTINUE); }
+case        { return symbol(sym.CASE); }
 
 /* literals */
 {DecIntegerLiteral} { return symbol(sym.NUMBER, new Integer(yytext())); }
