@@ -58,9 +58,9 @@ continue    { return symbol(sym.CONTINUE); }
 case        { return symbol(sym.CASE); }
 
 /* literals */
-{DecIntegerLiteral} { return symbol(sym.NUMBER, new Integer(yytext())); }
+{DecIntegerLiteral} { return symbol(sym.NUMBER, Integer.parseInt(yytext())); }
 {CharLiteral}       { return symbol(sym.CHAR, yytext().charAt(1)); }
-{BoolLiteral}       { return symbol(sym.BOOL, new Boolean(yytext())); }
+{BoolLiteral}       { return symbol(sym.BOOL, Boolean.parseBoolean(yytext())); }
 
 /* identifiers */
 {Identifier} { return symbol(sym.IDENT, yytext()); }
