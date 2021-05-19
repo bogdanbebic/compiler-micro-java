@@ -41,7 +41,6 @@ Comment = {LineComment}
 program     { return symbol(sym.PROGRAM); }
 break       { return symbol(sym.BREAK); }
 class       { return symbol(sym.CLASS); }
-enum        { return symbol(sym.ENUM); }
 else        { return symbol(sym.ELSE); }
 const       { return symbol(sym.CONST); }
 if          { return symbol(sym.IF); }
@@ -56,6 +55,8 @@ void        { return symbol(sym.VOID); }
 extends     { return symbol(sym.EXTENDS); }
 continue    { return symbol(sym.CONTINUE); }
 case        { return symbol(sym.CASE); }
+yield       { return symbol(sym.YIELD); }
+default     { return symbol(sym.DEFAULT); }
 
 /* literals */
 {DecIntegerLiteral} { return symbol(sym.NUMBER, Integer.parseInt(yytext())); }
@@ -91,7 +92,6 @@ case        { return symbol(sym.CASE); }
 "]"     { return symbol(sym.RBRACKET); }
 "{"     { return symbol(sym.LBRACE); }
 "}"     { return symbol(sym.RBRACE); }
-"?"     { return symbol(sym.QUESTION); }
 ":"     { return symbol(sym.COLON); }
 
 /* comments */
