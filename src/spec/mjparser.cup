@@ -1,0 +1,63 @@
+
+package rs.ac.bg.etf.pp1;
+
+import java_cup.runtime.*;
+import org.apache.log4j.*;
+import rs.ac.bg.etf.pp1.ast.*;
+
+parser code {:
+    Logger log = Logger.getLogger(getClass());
+
+    public void syntax_error(Symbol currentToken) {
+        report_error("\nSyntax error", currentToken);
+    }
+
+    public void unrecovered_syntax_error(Symbol currentToken) throws Exception {
+        report_fatal_error("Fatal error, parsing can't continue", currentToken);
+    }
+
+    public void report_fatal_error(String message, Object info) throws Exception {
+        done_parsing();
+        report_error(message, info);
+    }
+
+    public void report_error(String message, Object info) {
+        StringBuilder msg = new StringBuilder(message);
+        if (info instanceof Symbol)
+            msg.append(" on line ").append(((Symbol)info).left);
+
+        log.error(msg.toString());
+    }
+:}
+
+
+scan with {:
+    Symbol s = this.getScanner().next_token();
+    if (s != null && s.value != null)
+        log.info(s.toString() + " " + s.value.toString());
+    return s;
+:}
+
+/* keywords */
+terminal PROGRAM, BREAK, CLASS, ELSE, CONST, IF, SWITCH, DO, WHILE, NEW, PRINT,
+    READ, RETURN, VOID, EXTENDS, CONTINUE, CASE, YIELD, DEFAULT;
+
+/* literals */
+terminal Integer NUMBER;
+terminal Character CHAR;
+terminal Boolean BOOL;
+
+/* identifiers */
+terminal String IDENT;
+
+/* operators */
+terminal INC, DEC, PLUS, MINUS, MULT, DIV, MOD;
+terminal EQ, NE, GE, LE, GT, LT;
+terminal LAND, LOR;
+terminal ASSIGN, SEMI, COMMA, DOT;
+terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, COLON;
+
+nonterminal Program;
+
+Program ::= (Program) PROGRAM IDENT:programName LBRACE RBRACE
+        ;
