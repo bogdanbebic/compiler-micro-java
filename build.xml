@@ -10,7 +10,7 @@
             </fileset>
         </delete>
         <delete>
-            <fileset dir="spec">
+            <fileset dir="src/spec">
                 <exclude name="mjlexer.flex"/>
                 <exclude name="mjparser.cup"/>
             </fileset>
@@ -18,7 +18,7 @@
     </target>
 
     <target name="lexerGen" depends="delete">
-        <jflex file="./spec/mjlexer.flex" destdir="./src"/>
+        <jflex file="src/spec/mjlexer.flex" destdir="./src"/>
     </target>
 
     <target name="parserGen" depends="lexerGen">
@@ -32,7 +32,7 @@
             <arg value="-interface"/>
             <arg value="-dump_states"/>
             <arg value="-buildtree"/>
-            <arg value="spec/mjparser.cup"/>
+            <arg value="src/spec/mjparser.cup"/>
         </java>
     </target>
 
