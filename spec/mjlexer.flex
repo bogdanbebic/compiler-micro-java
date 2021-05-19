@@ -66,6 +66,8 @@ case        { return symbol(sym.CASE); }
 {Identifier} { return symbol(sym.IDENT, yytext()); }
 
 /* operators */
+"++"    { return symbol(sym.INC); }
+"--"    { return symbol(sym.DEC); }
 "+"     { return symbol(sym.PLUS); }
 "-"     { return symbol(sym.MINUS); }
 "*"     { return symbol(sym.MULT); }
@@ -73,15 +75,13 @@ case        { return symbol(sym.CASE); }
 "%"     { return symbol(sym.MOD); }
 "=="    { return symbol(sym.EQ); }
 "!="    { return symbol(sym.NE); }
-">"     { return symbol(sym.GT); }
 ">="    { return symbol(sym.GE); }
-"<"     { return symbol(sym.LT); }
 "<="    { return symbol(sym.LE); }
+">"     { return symbol(sym.GT); }
+"<"     { return symbol(sym.LT); }
 "&&"    { return symbol(sym.LAND); }
 "||"    { return symbol(sym.LOR); }
 "="     { return symbol(sym.ASSIGN); }
-"++"    { return symbol(sym.INC); }
-"--"    { return symbol(sym.DEC); }
 ";"     { return symbol(sym.SEMI); }
 ","     { return symbol(sym.COMMA); }
 "."     { return symbol(sym.DOT); }
