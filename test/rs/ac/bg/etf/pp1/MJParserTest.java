@@ -27,7 +27,7 @@ public class MJParserTest {
             br = new BufferedReader(new FileReader(sourceCode));
             Lexer lexer = new Lexer(br);
 
-            MJParser p = new MJParser(lexer);
+            Parser p = new Parser(lexer);
             Symbol s = p.parse();
 
             Program program = (Program)(s.value);

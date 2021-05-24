@@ -28,7 +28,7 @@
             <arg value="-ast"/>
             <arg value="src.rs.ac.bg.etf.pp1.ast"/>
             <arg value="-parser"/>
-            <arg value="MJParser"/>
+            <arg value="Parser"/>
             <arg value="-interface"/>
             <arg value="-dump_states"/>
             <arg value="-buildtree"/>
