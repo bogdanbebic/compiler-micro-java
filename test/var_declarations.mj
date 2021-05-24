@@ -4,6 +4,7 @@ program var_declarations
     int arr[];
     int arr1[], arr2[];
     int mixed, arr3[];
+    int arr4[], mixed2;
 {
 
 }
