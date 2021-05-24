@@ -45,7 +45,7 @@ terminal PROGRAM, BREAK, CLASS, ELSE, CONST, IF, SWITCH, DO, WHILE, NEW, PRINT,
 /* literals */
 terminal Integer NUMBER;
 terminal Character CHAR;
-terminal Boolean BOOL;
+terminal Object BOOL;
 
 /* identifiers */
 terminal String IDENT;
@@ -57,7 +57,46 @@ terminal LAND, LOR;
 terminal ASSIGN, SEMI, COMMA, DOT;
 terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, COLON;
 
-nonterminal Program;
+nonterminal Program, DeclList, MethodDeclList;
+nonterminal ConstantDecl, VariableDecl;
+nonterminal ConstantDeclList, SingleConstantDecl;
+nonterminal VariableDeclList, SingleVariableDecl;
+nonterminal Type;
 
-Program ::= (Program) PROGRAM IDENT:programName LBRACE RBRACE
+Program ::= (Program) PROGRAM IDENT:programName DeclList LBRACE MethodDeclList RBRACE
         ;
+
+DeclList ::= (NoDeclarations)      /* epsilon */
+           | (ConstantDeclaration) DeclList ConstantDecl
+           | (VariableDeclaration) DeclList VariableDecl
+           ;
+
+ConstantDecl ::= (ConstantDecl) CONST Type ConstantDeclList SEMI
+               ;
+
+ConstantDeclList ::= (FirstConstantDecl) SingleConstantDecl
+                   | (ConstantListDecl)  ConstantDeclList COMMA SingleConstantDecl
+                   ;
+
+SingleConstantDecl ::= (NumberConstantDecl) IDENT:constantName ASSIGN NUMBER:value
+                     | (CharConstantDecl)   IDENT:constantName ASSIGN CHAR:value
+                     | (BoolConstantDecl)   IDENT:constantName ASSIGN BOOL:value
+                     ;
+
+VariableDecl ::= (VariableDecl) Type VariableDeclList SEMI
+               ;
+
+VariableDeclList ::= (FirstVariableDecl) SingleVariableDecl
+                   | (VariableListDecl)  VariableDeclList COMMA SingleVariableDecl
+                   ;
+
+SingleVariableDecl ::= (ScalarVariableDecl) IDENT:variableName
+                     | (ArrayVariableDecl)  IDENT:variableName LBRACKET RBRACKET
+                     ;
+
+Type ::= (Type) IDENT:typename
+       ;
+
+MethodDeclList ::= (NoMethodDeclarations) /* epsilon */
+                 // TODO: implement
+                 ;
