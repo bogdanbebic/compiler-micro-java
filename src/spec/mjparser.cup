@@ -62,6 +62,9 @@ nonterminal ConstantDecl, VariableDecl;
 nonterminal ConstantDeclList, SingleConstantDecl;
 nonterminal VariableDeclList, SingleVariableDecl;
 nonterminal Type;
+nonterminal MethodDecl;
+nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
+nonterminal FormalParamsList, SingleFormalParamDecl;
 
 Program ::= (Program) PROGRAM IDENT:programName DeclList LBRACE MethodDeclList RBRACE
         ;
@@ -98,5 +101,31 @@ Type ::= (Type) IDENT:typename
        ;
 
 MethodDeclList ::= (NoMethodDeclarations) /* epsilon */
-                 // TODO: implement
+                 | (MethodDeclaration)    MethodDeclList MethodDecl
                  ;
+
+MethodDecl ::= (MethodDecl) ReturnType IDENT:methodName LPAREN FormalParams RPAREN VarDeclList LBRACE StatementList RBRACE
+             ;
+
+ReturnType ::= (NonVoidReturnType) Type
+             | (VoidReturnType)    VOID
+             ;
+
+FormalParams ::= (NoFormalParams)   /* epsilon */
+               | (FormalParamsDecl) FormalParamsList
+               ;
+
+FormalParamsList ::= (FirstFormalParamDecl) SingleFormalParamDecl
+                   | (FormalParamsListDecl) FormalParamsList COMMA SingleFormalParamDecl
+                   ;
+
+SingleFormalParamDecl ::= (FormalParamDecl) Type SingleVariableDecl
+                        ;
+
+VarDeclList ::= (NoVarDeclarations) /* epsilon */
+              | (VarDeclaration)    VarDeclList VariableDecl
+              ;
+
+StatementList ::= (NoStatements) /* epsilon */
+                // TODO: implement
+                ;
