@@ -58,9 +58,10 @@ terminal ASSIGN, SEMI, COMMA, DOT;
 terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, COLON;
 
 nonterminal Program, DeclList, MethodDeclList;
-nonterminal ConstantDecl, VariableDecl;
+nonterminal ConstantDecl, VariableDecl, ClassDecl;
 nonterminal ConstantDeclList, SingleConstantDecl;
 nonterminal VariableDeclList, SingleVariableDecl;
+nonterminal OptionalInheritance, OptionalMethodDeclList;
 nonterminal Type;
 nonterminal MethodDecl;
 nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
@@ -72,6 +73,7 @@ Program ::= (Program) PROGRAM IDENT:programName DeclList LBRACE MethodDeclList R
 DeclList ::= (NoDeclarations)      /* epsilon */
            | (ConstantDeclaration) DeclList ConstantDecl
            | (VariableDeclaration) DeclList VariableDecl
+           | (ClassDeclaration)    DeclList ClassDecl
            ;
 
 ConstantDecl ::= (ConstantDecl) CONST Type ConstantDeclList SEMI
@@ -96,6 +98,17 @@ VariableDeclList ::= (FirstVariableDecl) SingleVariableDecl
 SingleVariableDecl ::= (ScalarVariableDecl) IDENT:variableName
                      | (ArrayVariableDecl)  IDENT:variableName LBRACKET RBRACKET
                      ;
+
+ClassDecl ::= (ClassDecl) CLASS IDENT:className OptionalInheritance LBRACE VarDeclList OptionalMethodDeclList RBRACE
+            ;
+
+OptionalInheritance ::= (NoInheritanceDecl) /* epsilon */
+                      | (InheritanceDecl)   EXTENDS Type
+                      ;
+
+OptionalMethodDeclList ::= (NoClassMethodDeclList) /* epsilon */
+                         | (ClassMethodDeclList)   LBRACE MethodDeclList RBRACE
+                         ;
 
 Type ::= (Type) IDENT:typename
        ;
