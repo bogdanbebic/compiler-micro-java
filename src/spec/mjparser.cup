@@ -69,6 +69,7 @@ nonterminal FormalParamsList, SingleFormalParamDecl;
 nonterminal Statement;
 nonterminal DesignatorStatement, ReturnStatement, ReadStatement, PrintStatement;
 nonterminal IfThenElseStatement, DoWhileStatement, SwitchStatement;
+nonterminal OptionalWidthSpecifier;
 nonterminal OptionalExpr, Expr, ExpressionTerm, Term, Factor;
 nonterminal Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
@@ -154,9 +155,15 @@ StatementList ::= (NoStatements) /* epsilon */
 Statement ::= (BreakStmt)      BREAK SEMI
             | (ContinueStmt)   CONTINUE SEMI
             | (ReturnStmt)     RETURN OptionalExpr SEMI
+            | (ReadStmt)       READ LPAREN Designator RPAREN SEMI
+            | (PrintStmt)      PRINT LPAREN Expr OptionalWidthSpecifier RPAREN
             | (BlockStmt)      LBRACE StatementList RBRACE
             // TODO: implement
             ;
+
+OptionalWidthSpecifier ::= (NoWidthSpecifier) /* epsilon */
+                         | (WidthSpecifier)   COMMA NUMBER
+                         ;
 
 OptionalExpr ::= (NoExpression) /* epsilon */
                | (Expression)   Expr
