@@ -66,6 +66,14 @@ nonterminal Type;
 nonterminal MethodDecl;
 nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
 nonterminal FormalParamsList, SingleFormalParamDecl;
+nonterminal Statement;
+nonterminal DesignatorStatement, ReturnStatement, ReadStatement, PrintStatement;
+nonterminal IfThenElseStatement, DoWhileStatement, SwitchStatement;
+nonterminal OptionalExpr, Expr, ExpressionTerm, Term, Factor;
+nonterminal Designator;
+nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
+nonterminal OptionalArrayIndexing, ArrayIndexing, FieldAccess;
+nonterminal AddOp, MulOp;
 
 Program ::= (Program) PROGRAM IDENT:programName DeclList LBRACE MethodDeclList RBRACE
         ;
@@ -140,5 +148,72 @@ VarDeclList ::= (NoVarDeclarations) /* epsilon */
               ;
 
 StatementList ::= (NoStatements) /* epsilon */
-                // TODO: implement
+                | (Stmt)         StatementList Statement
                 ;
+
+Statement ::= (BreakStmt)      BREAK SEMI
+            | (ContinueStmt)   CONTINUE SEMI
+            | (ReturnStmt)     RETURN OptionalExpr SEMI
+            | (BlockStmt)      LBRACE StatementList RBRACE
+            // TODO: implement
+            ;
+
+OptionalExpr ::= (NoExpression) /* epsilon */
+               | (Expression)   Expr
+               ;
+
+Expr ::= (SingleTerm)      ExpressionTerm
+       | (AddOpExpression) Expr AddOp Term
+       ;
+
+ExpressionTerm ::= (PositiveTerm) Term
+                 | (NegativeTerm) MINUS Term
+                 ;
+
+Term ::= (SingleFactor) Factor
+       | (MulOpTerm)    Term MulOp Factor
+       ;
+
+Factor ::= (DesignatorFactor)     Designator OptionalFunctionCall
+         | (NumberConstantFactor) NUMBER
+         | (CharConstantFactor)   CHAR
+         | (BoolConstantFactor)   BOOL
+         | (AllocationFactor)     NEW Type OptionalArrayIndexing
+         | (ParenthesesFactor)    LPAREN Expr RPAREN
+         ;
+
+Designator ::= (SingleIdentifier)       IDENT:designator
+             | (DesignatorMemberAccess) Designator FieldAccess
+             | (DesignatorArrayIndex)   Designator ArrayIndexing
+             ;
+
+OptionalFunctionCall ::= (NoFunctionCall) /* epsilon */
+                       | (FunctionCall)   LPAREN ActualParams RPAREN
+                       ;
+
+ActualParams ::= (NoActualParams)   /* epsilon */
+               | (ActualParamsDecl) ActualParamsList
+               ;
+
+ActualParamsList ::= (FirstActualParamDecl) Expr
+                   | (ActualParamsListDecl) ActualParamsList COMMA Expr
+                   ;
+
+OptionalArrayIndexing ::= (NoArrayIndexing) /* epsilon */
+                        | (ArrayIndex)      ArrayIndexing
+                        ;
+
+ArrayIndexing ::= (ArrayIndexing) LBRACKET Expr RBRACKET
+                ;
+
+FieldAccess ::= (FieldAccess) DOT IDENT:fieldName
+              ;
+
+AddOp ::= (PlusOp) PLUS
+        | (MinusOp) MINUS
+        ;
+
+MulOp ::= (MultiplyOp) MULT
+        | (DivideOp)   DIV
+        | (ModuloOp)   MOD
+        ;
