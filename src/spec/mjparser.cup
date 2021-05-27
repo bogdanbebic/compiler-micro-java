@@ -71,7 +71,9 @@ nonterminal DesignatorStatement;
 nonterminal OptionalElseBranch;
 nonterminal OptionalWidthSpecifier;
 nonterminal Condition, ConditionTerm, ConditionFactor;
-nonterminal OptionalExpr, Expr, ExpressionTerm, Term, Factor;
+nonterminal OptionalExpr, Expr, ExprTermList, SwitchExpr;
+nonterminal ExpressionTerm, Term, Factor;
+nonterminal CaseLabelList, CaseLabel;
 nonterminal Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
 nonterminal OptionalArrayIndexing, ArrayIndexing, FieldAccess;
@@ -158,13 +160,13 @@ StatementList ::= (NoStatements) /* epsilon */
 Statement ::= (DesignatorStmt) DesignatorStatement SEMI
             | (IfElseStmt)     IF LPAREN Condition RPAREN Statement OptionalElseBranch
             | (DoWhileStmt)    DO Statement WHILE LPAREN Condition RPAREN SEMI
+            | (YieldStmt)      YIELD Expr SEMI
             | (BreakStmt)      BREAK SEMI
             | (ContinueStmt)   CONTINUE SEMI
             | (ReturnStmt)     RETURN OptionalExpr SEMI
             | (ReadStmt)       READ LPAREN Designator RPAREN SEMI
             | (PrintStmt)      PRINT LPAREN Expr OptionalWidthSpecifier RPAREN
             | (BlockStmt)      LBRACE StatementList RBRACE
-            // TODO: implement
             ;
 
 OptionalElseBranch ::= (NoElseBranch) /* epsilon */
@@ -197,9 +199,24 @@ OptionalExpr ::= (NoExpression) /* epsilon */
                | (Expression)   Expr
                ;
 
-Expr ::= (SingleTerm)      ExpressionTerm
-       | (AddOpExpression) Expr AddOp Term
+Expr ::= (ExprTermListDecl) ExprTermList
+       | (SwitchExprDecl)   SwitchExpr
        ;
+
+ExprTermList ::= (SingleTerm)      ExpressionTerm
+               | (AddOpExpression) ExprTermList AddOp Term
+               ;
+
+SwitchExpr ::= (SwitchExpression) SWITCH LPAREN Expr RPAREN LBRACE CaseLabelList RBRACE
+             ;
+
+CaseLabelList ::= (NoCaseLabels)  /* epsilon */
+                | (CaseLabelDecl) CaseLabelList CaseLabel
+                ;
+
+CaseLabel ::= (NonDefaultCaseLabel) CASE NUMBER COLON StatementList
+            | (DefaultCaseLabel)    DEFAULT COLON StatementList
+            ;
 
 ExpressionTerm ::= (PositiveTerm) Term
                  | (NegativeTerm) MINUS Term
