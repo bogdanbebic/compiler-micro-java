@@ -68,6 +68,7 @@ nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
 nonterminal FormalParamsList, SingleFormalParamDecl;
 nonterminal Statement;
 nonterminal DesignatorStatement;
+nonterminal OptionalElseBranch;
 nonterminal OptionalWidthSpecifier;
 nonterminal Condition, ConditionTerm, ConditionFactor;
 nonterminal OptionalExpr, Expr, ExpressionTerm, Term, Factor;
@@ -75,6 +76,8 @@ nonterminal Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
 nonterminal OptionalArrayIndexing, ArrayIndexing, FieldAccess;
 nonterminal AssignOp, RelOp, AddOp, MulOp;
+
+precedence left ELSE;
 
 Program ::= (Program) PROGRAM IDENT:programName DeclList LBRACE MethodDeclList RBRACE
         ;
@@ -153,6 +156,7 @@ StatementList ::= (NoStatements) /* epsilon */
                 ;
 
 Statement ::= (DesignatorStmt) DesignatorStatement SEMI
+            | (IfElseStmt)     IF LPAREN Condition RPAREN Statement OptionalElseBranch
             | (DoWhileStmt)    DO Statement WHILE LPAREN Condition RPAREN SEMI
             | (BreakStmt)      BREAK SEMI
             | (ContinueStmt)   CONTINUE SEMI
@@ -162,6 +166,10 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMI
             | (BlockStmt)      LBRACE StatementList RBRACE
             // TODO: implement
             ;
+
+OptionalElseBranch ::= (NoElseBranch) /* epsilon */
+                     | (ElseBranch)   ELSE Statement
+                     ;
 
 OptionalWidthSpecifier ::= (NoWidthSpecifier) /* epsilon */
                          | (WidthSpecifier)   COMMA NUMBER
