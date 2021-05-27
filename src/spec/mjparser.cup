@@ -75,7 +75,7 @@ nonterminal OptionalExpr, Expr, ExpressionTerm, Term, Factor;
 nonterminal Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
 nonterminal OptionalArrayIndexing, ArrayIndexing, FieldAccess;
-nonterminal RelOp, AddOp, MulOp;
+nonterminal AssignOp, RelOp, AddOp, MulOp;
 
 Program ::= (Program) PROGRAM IDENT:programName DeclList LBRACE MethodDeclList RBRACE
         ;
@@ -153,7 +153,8 @@ StatementList ::= (NoStatements) /* epsilon */
                 | (Stmt)         StatementList Statement
                 ;
 
-Statement ::= (DoWhileStmt)    DO Statement WHILE LPAREN Condition RPAREN SEMI
+Statement ::= (DesignatorStmt) DesignatorStatement SEMI
+            | (DoWhileStmt)    DO Statement WHILE LPAREN Condition RPAREN SEMI
             | (BreakStmt)      BREAK SEMI
             | (ContinueStmt)   CONTINUE SEMI
             | (ReturnStmt)     RETURN OptionalExpr SEMI
@@ -166,6 +167,12 @@ Statement ::= (DoWhileStmt)    DO Statement WHILE LPAREN Condition RPAREN SEMI
 OptionalWidthSpecifier ::= (NoWidthSpecifier) /* epsilon */
                          | (WidthSpecifier)   COMMA NUMBER
                          ;
+
+DesignatorStatement ::= (AssignmentStmt) Designator AssignOp Expr
+                      | (FunctionCallStmt) Designator LPAREN ActualParams RPAREN
+                      | (DesignatorIncStmt) Designator INC
+                      | (DesignatorDecStmt) Designator DEC
+                      ;
 
 Condition ::= (FirstConditionTerm) ConditionTerm
             | (ConditionTermList)  Condition LOR ConditionTerm
@@ -229,6 +236,9 @@ ArrayIndexing ::= (ArrayIndexing) LBRACKET Expr RBRACKET
 
 FieldAccess ::= (FieldAccess) DOT IDENT:fieldName
               ;
+
+AssignOp ::= (AssignOp) ASSIGN
+           ;
 
 RelOp ::= (EqualOp)        EQ
         | (NotEqualOp)     NE
