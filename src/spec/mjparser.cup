@@ -70,11 +70,12 @@ nonterminal Statement;
 nonterminal DesignatorStatement, ReturnStatement, ReadStatement, PrintStatement;
 nonterminal IfThenElseStatement, DoWhileStatement, SwitchStatement;
 nonterminal OptionalWidthSpecifier;
+nonterminal Condition, ConditionTerm, ConditionFactor;
 nonterminal OptionalExpr, Expr, ExpressionTerm, Term, Factor;
 nonterminal Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
 nonterminal OptionalArrayIndexing, ArrayIndexing, FieldAccess;
-nonterminal AddOp, MulOp;
+nonterminal RelOp, AddOp, MulOp;
 
 Program ::= (Program) PROGRAM IDENT:programName DeclList LBRACE MethodDeclList RBRACE
         ;
@@ -152,7 +153,8 @@ StatementList ::= (NoStatements) /* epsilon */
                 | (Stmt)         StatementList Statement
                 ;
 
-Statement ::= (BreakStmt)      BREAK SEMI
+Statement ::= (DoWhileStmt)    DO Statement WHILE LPAREN Condition RPAREN SEMI
+            | (BreakStmt)      BREAK SEMI
             | (ContinueStmt)   CONTINUE SEMI
             | (ReturnStmt)     RETURN OptionalExpr SEMI
             | (ReadStmt)       READ LPAREN Designator RPAREN SEMI
@@ -164,6 +166,18 @@ Statement ::= (BreakStmt)      BREAK SEMI
 OptionalWidthSpecifier ::= (NoWidthSpecifier) /* epsilon */
                          | (WidthSpecifier)   COMMA NUMBER
                          ;
+
+Condition ::= (FirstConditionTerm) ConditionTerm
+            | (ConditionTermList)  Condition LOR ConditionTerm
+            ;
+
+ConditionTerm ::= (FirstConditionFactor) ConditionFactor
+                | (ConditionFactorList)  ConditionTerm LAND ConditionFactor
+                ;
+
+ConditionFactor ::= (FirstConditionExpr) Expr
+                  | (ConditionExprList)  ConditionFactor RelOp Expr
+                  ;
 
 OptionalExpr ::= (NoExpression) /* epsilon */
                | (Expression)   Expr
@@ -215,6 +229,14 @@ ArrayIndexing ::= (ArrayIndexing) LBRACKET Expr RBRACKET
 
 FieldAccess ::= (FieldAccess) DOT IDENT:fieldName
               ;
+
+RelOp ::= (EqualOp)        EQ
+        | (NotEqualOp)     NE
+        | (GreaterOp)      GT
+        | (GreaterEqualOp) GE
+        | (LessOp)         LT
+        | (LessEqualOp)    LE
+        ;
 
 AddOp ::= (PlusOp) PLUS
         | (MinusOp) MINUS
