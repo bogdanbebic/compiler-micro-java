@@ -82,7 +82,7 @@ nonterminal AssignOp, RelOp, AddOp, MulOp;
 precedence left ELSE;
 
 Program ::= (Program) PROGRAM IDENT:programName DeclList LBRACE MethodDeclList RBRACE
-        ;
+          ;
 
 DeclList ::= (NoDeclarations)      /* epsilon */
            | (ConstantDeclaration) DeclList ConstantDecl
