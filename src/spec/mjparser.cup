@@ -165,7 +165,7 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMI
             | (ContinueStmt)   CONTINUE SEMI
             | (ReturnStmt)     RETURN OptionalExpr SEMI
             | (ReadStmt)       READ LPAREN Designator RPAREN SEMI
-            | (PrintStmt)      PRINT LPAREN Expr OptionalWidthSpecifier RPAREN
+            | (PrintStmt)      PRINT LPAREN Expr OptionalWidthSpecifier RPAREN SEMI
             | (BlockStmt)      LBRACE StatementList RBRACE
             ;
 
