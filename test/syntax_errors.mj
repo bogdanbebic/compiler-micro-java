@@ -1,0 +1,62 @@
+program syntax_errors
+
+// level A
+int err+, z;
+int e+;
+int x, y, er+;
+int a, b, 42, c;
+
+// level C
+class Base {
+    int merr+, mz;
+    int me+;
+    int mx, my, mer+;
+    int ma, mb, 42, mc;
+    int error_separator
+    {
+
+    }
+}
+int error_derived_separator;
+class Derived extends Ba+se {
+
+}
+class DerivedError extend Base {
+    int x
+    {
+
+    }
+}
+
+{
+    // level B
+    void no_args(int +) {
+
+    }
+
+    void first_args(int a, int +) {
+
+    }
+
+    void last_args(int +, int b) {
+
+    }
+
+    void outer_args(int x, int +, int y) {
+
+    }
+
+    void main() {
+        // level A
+        x = ;
+        a = (5 +
+        * 2);
+
+        // level B
+        if (x == )
+            x++;
+
+        if (a + b =)
+            x--;
+    }
+}
