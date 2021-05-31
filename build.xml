@@ -6,6 +6,8 @@
     <target name="delete">
         <delete>
             <fileset dir="src/rs/ac/bg/etf/pp1">
+                <exclude name="test/Compiler.java"/>
+                <exclude name="test/CompilerError.java"/>
                 <exclude name="util/Log4JUtils.java"/>
                 <exclude name="SemanticAnalyzer.java"/>
             </fileset>
