@@ -65,6 +65,7 @@ nonterminal ClassDeclStart, ClassDeclEnd;
 nonterminal OptionalInheritance, OptionalMethodDeclList;
 nonterminal Type;
 nonterminal MethodDecl;
+nonterminal MethodParams;
 nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
 nonterminal FormalParamsList, SingleFormalParamDecl;
 nonterminal Statement;
@@ -142,9 +143,12 @@ MethodDeclList ::= (NoMethodDeclarations) /* epsilon */
                  | (MethodDeclarations)   MethodDeclList MethodDecl
                  ;
 
-MethodDecl ::= (MethodDeclaration)     ReturnType IDENT:methodName LPAREN FormalParams RPAREN VarDeclList LBRACE StatementList RBRACE
-             | (ErroneousMethodParams) ReturnType IDENT:methodName LPAREN error RPAREN VarDeclList LBRACE StatementList RBRACE
+MethodDecl ::= (MethodDecl) ReturnType IDENT:methodName MethodParams VarDeclList LBRACE StatementList RBRACE
              ;
+
+MethodParams ::= (ValidMethodParams)     LPAREN FormalParams RPAREN
+               | (ErroneousMethodParams) LPAREN error RPAREN
+               ;
 
 ReturnType ::= (NonVoidReturnType) Type
              | (VoidReturnType)    VOID
