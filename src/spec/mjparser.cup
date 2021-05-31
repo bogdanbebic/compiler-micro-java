@@ -105,8 +105,10 @@ SingleConstantDecl ::= (NumberConstantDecl) IDENT:constantName ASSIGN NUMBER:val
                      ;
 
 VariableDecl ::= (GlobalVariableDecl)    Type VariableDeclList SEMI
-               | (ErroneousVariableDecl) error COMMA VariableDeclList SEMI
-               | (ErroneousGlobalDecl)   error SEMI
+               | (ErroneousVariableDecl) error COMMA:l VariableDeclList SEMI
+               {: parser.report_error("Syntax error declaring variable before , on line " + lleft, null); :}
+               | (ErroneousGlobalDecl)   error SEMI:l
+               {: parser.report_error("Syntax error declaring variable before ; on line " + lleft, null); :}
                ;
 
 VariableDeclList ::= (FirstVariableDecl) SingleVariableDecl
@@ -118,11 +120,16 @@ SingleVariableDecl ::= (ScalarVariableDecl) IDENT:variableName
                      ;
 
 ClassDecl ::= (ClassDefinition) ClassDeclStart VarDeclList OptionalMethodDeclList ClassDeclEnd
-            | (ErroneousFields) ClassDeclStart VarDeclList error LBRACE MethodDeclList RBRACE ClassDeclEnd
+            | (ErroneousFields) ClassDeclStart VarDeclList error LBRACE:l MethodDeclList RBRACE ClassDeclEnd
+            // {: parser.report_error("Syntax error declaring variable before { on line " + lleft, null); :}
+            // NOTE: does not work when action is present - for some reason, AST-CUP
+            // changes the parsing stack offsets when the action is present and because of
+            // this a ClassCastException is triggered when trying to reduce the production
             ;
 
 ClassDeclStart ::= (ClassDeclarationStart) CLASS IDENT:className OptionalInheritance LBRACE
-                 | (ErroneousInheritance)  CLASS IDENT:className error LBRACE
+                 | (ErroneousInheritance)  CLASS IDENT:className error LBRACE:l
+                 {: parser.report_error("Syntax error extending class before { on line " + lleft, null); :}
                  ;
 
 ClassDeclEnd ::= RBRACE
@@ -147,7 +154,8 @@ MethodDecl ::= (MethodDecl) ReturnType IDENT:methodName MethodParams VarDeclList
              ;
 
 MethodParams ::= (ValidMethodParams)     LPAREN FormalParams RPAREN
-               | (ErroneousMethodParams) LPAREN error RPAREN
+               | (ErroneousMethodParams) LPAREN error RPAREN:l
+               {: parser.report_error("Syntax error declaring formal parameter before ) on line " + lleft, null); :}
                ;
 
 ReturnType ::= (NonVoidReturnType) Type
@@ -160,7 +168,8 @@ FormalParams ::= (NoFormalParams)   /* epsilon */
 
 FormalParamsList ::= (FirstFormalParamDecl) SingleFormalParamDecl
                    | (FormalParamsListDecl) FormalParamsList COMMA SingleFormalParamDecl
-                   | (ErroneousFormalParam) error COMMA SingleFormalParamDecl
+                   | (ErroneousFormalParam) error COMMA:l SingleFormalParamDecl:param
+                   {: parser.report_error("Syntax error declaring formal parameter before , on line " + lleft, null); :}
                    ;
 
 SingleFormalParamDecl ::= (FormalParamDecl) Type SingleVariableDecl
@@ -184,11 +193,13 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMI
             | (ReadStmt)       READ LPAREN Designator RPAREN SEMI
             | (PrintStmt)      PRINT LPAREN Expr OptionalWidthSpecifier RPAREN SEMI
             | (BlockStmt)      LBRACE StatementList RBRACE
-            | (ErroneousStmt)  error SEMI
+            | (ErroneousStmt)  error SEMI:l
+            {: parser.report_error("Syntax error in statement before ; on line " + lleft, null); :}
             ;
 
 IfCondition ::= (ValidIfCondition) LPAREN Condition RPAREN
-              | (ErroneousIfCondition) LPAREN error RPAREN
+              | (ErroneousIfCondition) LPAREN error RPAREN:l
+              {: parser.report_error("Syntax error in condition before ) on line " + lleft, null); :}
               ;
 
 OptionalElseBranch ::= (NoElseBranch) /* epsilon */
