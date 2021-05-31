@@ -69,7 +69,7 @@ nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
 nonterminal FormalParamsList, SingleFormalParamDecl;
 nonterminal Statement;
 nonterminal DesignatorStatement;
-nonterminal OptionalElseBranch;
+nonterminal IfCondition, OptionalElseBranch;
 nonterminal OptionalWidthSpecifier;
 nonterminal Condition, ConditionTerm, ConditionFactor;
 nonterminal OptionalExpr, Expr, ExprTermList, SwitchExpr;
@@ -171,8 +171,8 @@ StatementList ::= (NoStatements) /* epsilon */
                 ;
 
 Statement ::= (DesignatorStmt) DesignatorStatement SEMI
-            | (IfElseStmt)     IF LPAREN Condition RPAREN Statement OptionalElseBranch
-            | (DoWhileStmt)    DO Statement WHILE LPAREN Condition RPAREN SEMI
+            | (IfElseStmt)     IF IfCondition Statement OptionalElseBranch
+            | (DoWhileStmt)    DO Statement WHILE IfCondition SEMI
             | (YieldStmt)      YIELD Expr SEMI
             | (BreakStmt)      BREAK SEMI
             | (ContinueStmt)   CONTINUE SEMI
@@ -181,8 +181,11 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMI
             | (PrintStmt)      PRINT LPAREN Expr OptionalWidthSpecifier RPAREN SEMI
             | (BlockStmt)      LBRACE StatementList RBRACE
             | (ErroneousStmt)  error SEMI
-            | (ErroneousIf)    IF LPAREN error RPAREN Statement OptionalElseBranch
             ;
+
+IfCondition ::= (ValidIfCondition) LPAREN Condition RPAREN
+              | (ErroneousIfCondition) LPAREN error RPAREN
+              ;
 
 OptionalElseBranch ::= (NoElseBranch) /* epsilon */
                      | (ElseBranch)   ELSE Statement
