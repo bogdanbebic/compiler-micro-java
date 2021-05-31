@@ -61,6 +61,7 @@ nonterminal Program, DeclList, MethodDeclList;
 nonterminal ConstantDecl, VariableDecl, ClassDecl;
 nonterminal ConstantDeclList, SingleConstantDecl;
 nonterminal VariableDeclList, SingleVariableDecl;
+nonterminal ClassDeclStart, ClassDeclEnd;
 nonterminal OptionalInheritance, OptionalMethodDeclList;
 nonterminal Type;
 nonterminal MethodDecl;
@@ -115,11 +116,16 @@ SingleVariableDecl ::= (ScalarVariableDecl) IDENT:variableName
                      | (ArrayVariableDecl)  IDENT:variableName LBRACKET RBRACKET
                      ;
 
-ClassDecl ::= (ClassDefinition)      CLASS IDENT:className OptionalInheritance LBRACE VarDeclList OptionalMethodDeclList RBRACE
-            | (ErroneousFields)      CLASS IDENT:className OptionalInheritance LBRACE VarDeclList error LBRACE MethodDeclList RBRACE RBRACE
-            | (ErroneousInheritance) CLASS IDENT:className error LBRACE VarDeclList OptionalMethodDeclList RBRACE
-            | (ErroneousClass)       CLASS IDENT:className error LBRACE VarDeclList error LBRACE MethodDeclList RBRACE RBRACE
+ClassDecl ::= (ClassDefinition) ClassDeclStart VarDeclList OptionalMethodDeclList ClassDeclEnd
+            | (ErroneousFields) ClassDeclStart VarDeclList error LBRACE MethodDeclList RBRACE ClassDeclEnd
             ;
+
+ClassDeclStart ::= (ClassDeclarationStart) CLASS IDENT:className OptionalInheritance LBRACE
+                 | (ErroneousInheritance)  CLASS IDENT:className error LBRACE
+                 ;
+
+ClassDeclEnd ::= RBRACE
+               ;
 
 OptionalInheritance ::= (NoInheritanceDecl) /* epsilon */
                       | (InheritanceDecl)   EXTENDS Type
