@@ -102,7 +102,9 @@ SingleConstantDecl ::= (NumberConstantDecl) IDENT:constantName ASSIGN NUMBER:val
                      | (BoolConstantDecl)   IDENT:constantName ASSIGN BOOL:value
                      ;
 
-VariableDecl ::= (VariableDecl) Type VariableDeclList SEMI
+VariableDecl ::= (GlobalVariableDecl)    Type VariableDeclList SEMI
+               | (ErroneousVariableDecl) error COMMA VariableDeclList SEMI
+               | (ErroneousGlobalDecl)   error SEMI
                ;
 
 VariableDeclList ::= (FirstVariableDecl) SingleVariableDecl
@@ -113,7 +115,10 @@ SingleVariableDecl ::= (ScalarVariableDecl) IDENT:variableName
                      | (ArrayVariableDecl)  IDENT:variableName LBRACKET RBRACKET
                      ;
 
-ClassDecl ::= (ClassDecl) CLASS IDENT:className OptionalInheritance LBRACE VarDeclList OptionalMethodDeclList RBRACE
+ClassDecl ::= (ClassDefinition)      CLASS IDENT:className OptionalInheritance LBRACE VarDeclList OptionalMethodDeclList RBRACE
+            | (ErroneousFields)      CLASS IDENT:className OptionalInheritance LBRACE VarDeclList error LBRACE MethodDeclList RBRACE RBRACE
+            | (ErroneousInheritance) CLASS IDENT:className error LBRACE VarDeclList OptionalMethodDeclList RBRACE
+            | (ErroneousClass)       CLASS IDENT:className error LBRACE VarDeclList error LBRACE MethodDeclList RBRACE RBRACE
             ;
 
 OptionalInheritance ::= (NoInheritanceDecl) /* epsilon */
@@ -128,10 +133,11 @@ Type ::= (Type) IDENT:typename
        ;
 
 MethodDeclList ::= (NoMethodDeclarations) /* epsilon */
-                 | (MethodDeclaration)    MethodDeclList MethodDecl
+                 | (MethodDeclarations)   MethodDeclList MethodDecl
                  ;
 
-MethodDecl ::= (MethodDecl) ReturnType IDENT:methodName LPAREN FormalParams RPAREN VarDeclList LBRACE StatementList RBRACE
+MethodDecl ::= (MethodDeclaration)     ReturnType IDENT:methodName LPAREN FormalParams RPAREN VarDeclList LBRACE StatementList RBRACE
+             | (ErroneousMethodParams) ReturnType IDENT:methodName LPAREN error RPAREN VarDeclList LBRACE StatementList RBRACE
              ;
 
 ReturnType ::= (NonVoidReturnType) Type
@@ -144,6 +150,7 @@ FormalParams ::= (NoFormalParams)   /* epsilon */
 
 FormalParamsList ::= (FirstFormalParamDecl) SingleFormalParamDecl
                    | (FormalParamsListDecl) FormalParamsList COMMA SingleFormalParamDecl
+                   | (ErroneousFormalParam) error COMMA SingleFormalParamDecl
                    ;
 
 SingleFormalParamDecl ::= (FormalParamDecl) Type SingleVariableDecl
@@ -167,6 +174,8 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMI
             | (ReadStmt)       READ LPAREN Designator RPAREN SEMI
             | (PrintStmt)      PRINT LPAREN Expr OptionalWidthSpecifier RPAREN SEMI
             | (BlockStmt)      LBRACE StatementList RBRACE
+            | (ErroneousStmt)  error SEMI
+            | (ErroneousIf)    IF LPAREN error RPAREN Statement OptionalElseBranch
             ;
 
 OptionalElseBranch ::= (NoElseBranch) /* epsilon */
