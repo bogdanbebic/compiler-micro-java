@@ -2,6 +2,7 @@
 package rs.ac.bg.etf.pp1;
 
 import java_cup.runtime.Symbol;
+import rs.ac.bg.etf.pp1.test.CompilerError;
 
 %%
 
@@ -101,4 +102,11 @@ default     { return symbol(sym.DEFAULT); }
 {WhiteSpace} { /* ignore */ }
 
 /* error fallback */
-. { System.err.println("Lexical error (" + yytext() + ") at line " + (yyline + 1)); }
+. {
+    MJCompiler.getInstance().addError(new CompilerError(
+        yyline + 1,
+        "Unrecognized token '" + yytext() + "'",
+        CompilerError.CompilerErrorType.LEXICAL_ERROR
+    ));
+    System.err.println("Lexical error (" + yytext() + ") at line " + (yyline + 1));
+}

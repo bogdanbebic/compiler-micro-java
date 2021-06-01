@@ -4,6 +4,7 @@ package rs.ac.bg.etf.pp1;
 import java_cup.runtime.*;
 import org.apache.log4j.*;
 import rs.ac.bg.etf.pp1.ast.*;
+import rs.ac.bg.etf.pp1.test.CompilerError;
 
 parser code {:
     Logger log = Logger.getLogger(getClass());
@@ -27,6 +28,11 @@ parser code {:
             msg.append(" on line ").append(((Symbol)info).left);
 
         log.error(msg.toString());
+        MJCompiler.getInstance().addError(new CompilerError(
+            ((Symbol) info).left,
+            "Invalid syntax",
+            CompilerError.CompilerErrorType.SYNTAX_ERROR
+        ));
     }
 :}
 
