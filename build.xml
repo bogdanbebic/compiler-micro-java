@@ -9,6 +9,7 @@
                 <exclude name="test/Compiler.java"/>
                 <exclude name="test/CompilerError.java"/>
                 <exclude name="util/Log4JUtils.java"/>
+                <exclude name="MJCompiler.java"/>
                 <exclude name="SemanticAnalyzer.java"/>
             </fileset>
         </delete>
