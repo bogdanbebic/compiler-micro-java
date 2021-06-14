@@ -22,6 +22,10 @@ public class MJCompiler implements Compiler {
         this.errors.add(error);
     }
 
+    private boolean hasCompileTimeErrors() {
+        return this.errors.isEmpty();
+    }
+
     private static final Logger log;
 
     static {
@@ -43,7 +47,15 @@ public class MJCompiler implements Compiler {
             Parser parser = new Parser(lexer);
             Symbol symbol = parser.parse();
             Program program = (Program) symbol.value;
-            // TODO: syntax analyzer
+
+            MJSymbolTable.init();
+            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
+            program.traverseBottomUp(semanticAnalyzer);
+
+            if (this.hasCompileTimeErrors()) {
+                return errors;
+            }
+
             // TODO: code generation
         } catch (Exception e) {
             log.error(e.getMessage(), e);

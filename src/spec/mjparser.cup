@@ -63,7 +63,9 @@ terminal LAND, LOR;
 terminal ASSIGN, SEMI, COMMA, DOT;
 terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, COLON;
 
-nonterminal Program, DeclList, MethodDeclList;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Program;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgramHeader;
+nonterminal DeclList, MethodDeclList;
 nonterminal ConstantDecl, VariableDecl, ClassDecl;
 nonterminal ConstantDeclList, SingleConstantDecl;
 nonterminal VariableDeclList, SingleVariableDecl;
@@ -89,8 +91,11 @@ nonterminal AssignOp, RelOp, AddOp, MulOp;
 
 precedence left ELSE;
 
-Program ::= (Program) PROGRAM IDENT:programName DeclList LBRACE MethodDeclList RBRACE
+Program ::= (Program) ProgramHeader:programHeader DeclList LBRACE MethodDeclList RBRACE
           ;
+
+ProgramHeader ::= (ProgramHeader) PROGRAM IDENT:programName
+                ;
 
 DeclList ::= (NoDeclarations)      /* epsilon */
            | (ConstantDeclaration) DeclList ConstantDecl
