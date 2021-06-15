@@ -67,8 +67,8 @@ nonterminal rs.etf.pp1.symboltable.concepts.Obj Program;
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgramHeader;
 nonterminal DeclList, MethodDeclList;
 nonterminal ConstantDecl, VariableDecl, ClassDecl;
-nonterminal ConstantDeclList, SingleConstantDecl;
-nonterminal VariableDeclList, SingleVariableDecl;
+nonterminal ConstantDeclList, SingleConstantDecl, Constant;
+nonterminal VariableDeclList, SingleVariableDecl, OptionalArraySpecifier;
 nonterminal ClassDeclStart, ClassDeclEnd;
 nonterminal OptionalInheritance, OptionalMethodDeclList;
 nonterminal Type;
@@ -110,10 +110,13 @@ ConstantDeclList ::= (FirstConstantDecl) SingleConstantDecl
                    | (ConstantListDecl)  ConstantDeclList COMMA SingleConstantDecl
                    ;
 
-SingleConstantDecl ::= (NumberConstantDecl) IDENT:constantName ASSIGN NUMBER:value
-                     | (CharConstantDecl)   IDENT:constantName ASSIGN CHAR:value
-                     | (BoolConstantDecl)   IDENT:constantName ASSIGN BOOL:value
+SingleConstantDecl ::= (SingleConstantDecl) IDENT:constantName ASSIGN Constant
                      ;
+
+Constant ::= (NumberConstant) NUMBER:value
+           | (CharConstant)   CHAR:value
+           | (BoolConstant)   BOOL:value
+           ;
 
 VariableDecl ::= (GlobalVariableDecl)    Type VariableDeclList SEMI
                | (ErroneousVariableDecl) error COMMA VariableDeclList SEMI
@@ -124,9 +127,12 @@ VariableDeclList ::= (FirstVariableDecl) SingleVariableDecl
                    | (VariableListDecl)  VariableDeclList COMMA SingleVariableDecl
                    ;
 
-SingleVariableDecl ::= (ScalarVariableDecl) IDENT:variableName
-                     | (ArrayVariableDecl)  IDENT:variableName LBRACKET RBRACKET
+SingleVariableDecl ::= (SingleVariableDecl) IDENT:variableName OptionalArraySpecifier
                      ;
+
+OptionalArraySpecifier ::= (NoArraySpecifier) /* epsilon */
+                         | (ArraySpecifier)   LBRACKET RBRACKET
+                         ;
 
 ClassDecl ::= (ClassDefinition) ClassDeclStart VarDeclList OptionalMethodDeclList ClassDeclEnd
             | (ErroneousFields) ClassDeclStart VarDeclList error LBRACE MethodDeclList RBRACE ClassDeclEnd
@@ -198,7 +204,7 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMI
             | (ErroneousStmt)  error SEMI
             ;
 
-IfCondition ::= (ValidIfCondition) LPAREN Condition RPAREN
+IfCondition ::= (ValidIfCondition)     LPAREN Condition RPAREN
               | (ErroneousIfCondition) LPAREN error RPAREN
               ;
 
@@ -210,8 +216,8 @@ OptionalWidthSpecifier ::= (NoWidthSpecifier) /* epsilon */
                          | (WidthSpecifier)   COMMA NUMBER
                          ;
 
-DesignatorStatement ::= (AssignmentStmt) Designator AssignOp Expr
-                      | (FunctionCallStmt) Designator LPAREN ActualParams RPAREN
+DesignatorStatement ::= (AssignmentStmt)    Designator AssignOp Expr
+                      | (FunctionCallStmt)  Designator LPAREN ActualParams RPAREN
                       | (DesignatorIncStmt) Designator INC
                       | (DesignatorDecStmt) Designator DEC
                       ;
@@ -305,7 +311,7 @@ RelOp ::= (EqualOp)        EQ
         | (LessEqualOp)    LE
         ;
 
-AddOp ::= (PlusOp) PLUS
+AddOp ::= (PlusOp)  PLUS
         | (MinusOp) MINUS
         ;
 
