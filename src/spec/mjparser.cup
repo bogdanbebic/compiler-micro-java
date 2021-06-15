@@ -51,7 +51,7 @@ terminal PROGRAM, BREAK, CLASS, ELSE, CONST, IF, SWITCH, DO, WHILE, NEW, PRINT,
 /* literals */
 terminal Integer NUMBER;
 terminal Character CHAR;
-terminal Object BOOL;
+terminal Integer BOOL;
 
 /* identifiers */
 terminal String IDENT;
