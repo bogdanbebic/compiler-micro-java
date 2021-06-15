@@ -1,5 +1,6 @@
 package rs.ac.bg.etf.pp1;
 
+import org.apache.log4j.Logger;
 import rs.ac.bg.etf.pp1.ast.Program;
 import rs.ac.bg.etf.pp1.ast.ProgramHeader;
 import rs.ac.bg.etf.pp1.ast.VisitorAdaptor;
@@ -20,6 +21,36 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         super.visit(program);
         MJSymbolTable.chainLocalSymbols(program.getProgramHeader().obj);
         MJSymbolTable.closeScope();
+    }
+
+    Logger log = Logger.getLogger(getClass());
+
+    private void report_error(String message, SyntaxNode syntaxNode) {
+        StringBuilder msg = new StringBuilder(message);
+        int line = syntaxNode != null ? syntaxNode.getLine() : 0;
+        if (syntaxNode != null)
+            msg.append(" on line ").append(line);
+
+        log.error(msg.toString());
+        MJCompiler.getInstance().addError(new CompilerError(
+                line,
+                message,
+                CompilerError.CompilerErrorType.SEMANTIC_ERROR
+        ));
+    }
+
+    private void report_info(String message, SyntaxNode syntaxNode) {
+        StringBuilder msg = new StringBuilder(message);
+        int line = syntaxNode != null ? syntaxNode.getLine() : 0;
+        if (syntaxNode != null)
+            msg.append(" on line ").append(line);
+
+        log.info(msg.toString());
+        MJCompiler.getInstance().addError(new CompilerError(
+                line,
+                message,
+                CompilerError.CompilerErrorType.SEMANTIC_ERROR
+        ));
     }
 
 }
