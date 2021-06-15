@@ -62,7 +62,7 @@ default     { return symbol(sym.DEFAULT); }
 /* literals */
 {DecIntegerLiteral} { return symbol(sym.NUMBER, Integer.parseInt(yytext())); }
 {CharLiteral}       { return symbol(sym.CHAR, yytext().charAt(1)); }
-{BoolLiteral}       { return symbol(sym.BOOL, Boolean.parseBoolean(yytext())); }
+{BoolLiteral}       { return symbol(sym.BOOL, Boolean.parseBoolean(yytext()) ? 1 : 0); }
 
 /* identifiers */
 {Identifier} { return symbol(sym.IDENT, yytext()); }
