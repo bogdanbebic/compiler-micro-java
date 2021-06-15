@@ -73,6 +73,8 @@ nonterminal ClassDeclStart, ClassDeclEnd;
 nonterminal OptionalInheritance, OptionalMethodDeclList;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type;
 nonterminal MethodDecl;
+nonterminal MethodSignature;
+nonterminal MethodSignatureWithoutParams;
 nonterminal MethodParams;
 nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
 nonterminal FormalParamsList, SingleFormalParamDecl;
@@ -142,7 +144,7 @@ ClassDeclStart ::= (ClassDeclarationStart) CLASS IDENT:className OptionalInherit
                  | (ErroneousInheritance)  CLASS IDENT:className error LBRACE
                  ;
 
-ClassDeclEnd ::= RBRACE
+ClassDeclEnd ::= (ClassDeclEnd) RBRACE
                ;
 
 OptionalInheritance ::= (NoInheritanceDecl) /* epsilon */
@@ -160,8 +162,14 @@ MethodDeclList ::= (NoMethodDeclarations) /* epsilon */
                  | (MethodDeclarations)   MethodDeclList MethodDecl
                  ;
 
-MethodDecl ::= (MethodDecl) ReturnType IDENT:methodName MethodParams VarDeclList LBRACE StatementList RBRACE
+MethodDecl ::= (MethodDecl) MethodSignature VarDeclList LBRACE StatementList RBRACE
              ;
+
+MethodSignature ::= (MethodSignature) MethodSignatureWithoutParams MethodParams
+                  ;
+
+MethodSignatureWithoutParams ::= (MethodSignatureWithoutParams) ReturnType IDENT:methodName
+                               ;
 
 MethodParams ::= (ValidMethodParams)     LPAREN FormalParams RPAREN
                | (ErroneousMethodParams) LPAREN error RPAREN

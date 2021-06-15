@@ -9,6 +9,38 @@ import rs.etf.pp1.symboltable.concepts.Struct;
 public class SemanticAnalyzer extends VisitorAdaptor {
 
     private Struct currentDeclarationType = MJSymbolTable.noType;
+    private boolean inClassDefinition = false;
+    private boolean inMethodDeclaration = false;
+
+    @Override
+    public void visit(ClassDeclarationStart classDeclarationStart) {
+        super.visit(classDeclarationStart);
+        inClassDefinition = true;
+    }
+
+    @Override
+    public void visit(ErroneousInheritance erroneousInheritance) {
+        super.visit(erroneousInheritance);
+        inClassDefinition = true;
+    }
+
+    @Override
+    public void visit(ClassDeclEnd classDeclEnd) {
+        super.visit(classDeclEnd);
+        inClassDefinition = false;
+    }
+
+    @Override
+    public void visit(MethodSignatureWithoutParams methodSignatureWithoutParams) {
+        super.visit(methodSignatureWithoutParams);
+        inMethodDeclaration = true;
+    }
+
+    @Override
+    public void visit(MethodDecl methodDecl) {
+        super.visit(methodDecl);
+        inMethodDeclaration = false;
+    }
 
     @Override
     public void visit(Type type) {
@@ -67,6 +99,24 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         // insert the constant to the symbol table
         Obj constObj = MJSymbolTable.insert(Obj.Con, singleConstantDecl.getConstantName(), currentDeclarationType);
         constObj.setAdr(constantValue);
+    }
+
+    @Override
+    public void visit(SingleVariableDecl singleVariableDecl) {
+        super.visit(singleVariableDecl);
+        // TODO: check if already defined
+
+        int kind = inClassDefinition && !inMethodDeclaration ? Obj.Fld : Obj.Var;
+
+        if (singleVariableDecl.getOptionalArraySpecifier() instanceof ArraySpecifier) {
+            // array variable declaration
+            Struct arrayStruct = new Struct(Struct.Array, currentDeclarationType);
+            MJSymbolTable.insert(kind, singleVariableDecl.getVariableName(), arrayStruct);
+        }
+        else {
+            // scalar variable declaration
+            MJSymbolTable.insert(kind, singleVariableDecl.getVariableName(), currentDeclarationType);
+        }
     }
 
     @Override
