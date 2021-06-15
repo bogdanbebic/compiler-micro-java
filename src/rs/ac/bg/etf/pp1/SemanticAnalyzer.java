@@ -1,13 +1,73 @@
 package rs.ac.bg.etf.pp1;
 
 import org.apache.log4j.Logger;
-import rs.ac.bg.etf.pp1.ast.Program;
-import rs.ac.bg.etf.pp1.ast.ProgramHeader;
-import rs.ac.bg.etf.pp1.ast.VisitorAdaptor;
+import rs.ac.bg.etf.pp1.ast.*;
+import rs.ac.bg.etf.pp1.test.CompilerError;
 import rs.etf.pp1.symboltable.concepts.Obj;
+import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class SemanticAnalyzer extends VisitorAdaptor {
-    // TODO: implement
+
+    private Struct currentDeclarationType = MJSymbolTable.noType;
+
+    @Override
+    public void visit(Type type) {
+        super.visit(type);
+        Obj typeObj = MJSymbolTable.find(type.getTypename());
+        if (typeObj.equals(MJSymbolTable.noObj)) {
+            report_error("Type does not exist in the symbol table", type);
+            currentDeclarationType = MJSymbolTable.noType;
+        }
+        else if (typeObj.getKind() != Obj.Type) {
+            report_error("Identifier found is not a type", type);
+            currentDeclarationType = MJSymbolTable.noType;
+        }
+        else {
+            currentDeclarationType = typeObj.getType();
+        }
+
+        type.struct = currentDeclarationType;
+    }
+
+    @Override
+    public void visit(SingleConstantDecl singleConstantDecl) {
+        super.visit(singleConstantDecl);
+        // TODO: check if already defined
+
+        int constantValue;
+        Constant constant = singleConstantDecl.getConstant();
+        // get constant value and type check it
+        switch (currentDeclarationType.getKind()) {
+            case Struct.Int:
+                if (!(constant instanceof NumberConstant)) {
+                    report_error("Actual constant is not of type int", constant);
+                    return;
+                }
+                constantValue = ((NumberConstant) constant).getValue();
+                break;
+            case Struct.Char:
+                if (!(constant instanceof CharConstant)) {
+                    report_error("Actual constant is not of type char", constant);
+                    return;
+                }
+                constantValue = Character.getNumericValue(((CharConstant) constant).getValue());
+                break;
+            case Struct.Bool:
+                if (!(constant instanceof BoolConstant)) {
+                    report_error("Actual constant is not of type bool", constant);
+                    return;
+                }
+                constantValue = ((BoolConstant) constant).getValue();
+                break;
+            default:
+                report_error("Constant must be a builtin type", constant);
+                return;
+        }
+
+        // insert the constant to the symbol table
+        Obj constObj = MJSymbolTable.insert(Obj.Con, singleConstantDecl.getConstantName(), currentDeclarationType);
+        constObj.setAdr(constantValue);
+    }
 
     @Override
     public void visit(ProgramHeader programHeader) {
