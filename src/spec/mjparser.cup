@@ -71,7 +71,7 @@ nonterminal ConstantDeclList, SingleConstantDecl, Constant;
 nonterminal VariableDeclList, SingleVariableDecl, OptionalArraySpecifier;
 nonterminal ClassDeclStart, ClassDeclEnd;
 nonterminal OptionalInheritance, OptionalMethodDeclList;
-nonterminal Type;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type;
 nonterminal MethodDecl;
 nonterminal MethodParams;
 nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
@@ -110,7 +110,7 @@ ConstantDeclList ::= (FirstConstantDecl) SingleConstantDecl
                    | (ConstantListDecl)  ConstantDeclList COMMA SingleConstantDecl
                    ;
 
-SingleConstantDecl ::= (SingleConstantDecl) IDENT:constantName ASSIGN Constant
+SingleConstantDecl ::= (SingleConstantDecl) IDENT:constantName ASSIGN Constant:constant
                      ;
 
 Constant ::= (NumberConstant) NUMBER:value
