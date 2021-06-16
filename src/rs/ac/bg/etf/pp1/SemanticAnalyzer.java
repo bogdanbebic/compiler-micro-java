@@ -9,6 +9,7 @@ import rs.etf.pp1.symboltable.concepts.Struct;
 public class SemanticAnalyzer extends VisitorAdaptor {
 
     private Struct currentDeclarationType = MJSymbolTable.noType;
+    private Obj currentClass;
     private Obj currentMethod;
     private boolean inClassDefinition = false;
     private boolean inMethodDeclaration = false;
@@ -17,18 +18,31 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(ClassDeclarationStart classDeclarationStart) {
         super.visit(classDeclarationStart);
         inClassDefinition = true;
+        currentClass = MJSymbolTable.insert(
+                Obj.Type,
+                classDeclarationStart.getClassName(),
+                new Struct(Struct.Class));
+        MJSymbolTable.openScope();
     }
 
     @Override
     public void visit(ErroneousInheritance erroneousInheritance) {
         super.visit(erroneousInheritance);
         inClassDefinition = true;
+        currentClass = MJSymbolTable.insert(
+                Obj.Type,
+                erroneousInheritance.getClassName(),
+                new Struct(Struct.Class));
+        MJSymbolTable.openScope();
     }
 
     @Override
     public void visit(ClassDeclEnd classDeclEnd) {
         super.visit(classDeclEnd);
         inClassDefinition = false;
+        MJSymbolTable.chainLocalSymbols(currentClass.getType());
+        MJSymbolTable.closeScope();
+        currentClass = null;
     }
 
     @Override
