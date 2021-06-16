@@ -9,6 +9,7 @@ import rs.etf.pp1.symboltable.concepts.Struct;
 public class SemanticAnalyzer extends VisitorAdaptor {
 
     private Struct currentDeclarationType = MJSymbolTable.noType;
+    private Obj currentMethod;
     private boolean inClassDefinition = false;
     private boolean inMethodDeclaration = false;
 
@@ -34,12 +35,26 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(MethodSignatureWithoutParams methodSignatureWithoutParams) {
         super.visit(methodSignatureWithoutParams);
         inMethodDeclaration = true;
+        Struct returnTypeStruct = new Struct(Struct.None);
+        if (methodSignatureWithoutParams.getReturnType() instanceof NonVoidReturnType) {
+            NonVoidReturnType returnType = (NonVoidReturnType) methodSignatureWithoutParams.getReturnType();
+            returnTypeStruct = returnType.getType().struct;
+        }
+
+        currentMethod = MJSymbolTable.insert(
+                Obj.Meth,
+                methodSignatureWithoutParams.getMethodName(),
+                returnTypeStruct);
+        MJSymbolTable.openScope();
     }
 
     @Override
     public void visit(MethodDecl methodDecl) {
         super.visit(methodDecl);
         inMethodDeclaration = false;
+        MJSymbolTable.chainLocalSymbols(currentMethod);
+        MJSymbolTable.closeScope();
+        currentMethod = null;
     }
 
     @Override

@@ -168,14 +168,14 @@ MethodDecl ::= (MethodDecl) MethodSignature VarDeclList LBRACE StatementList RBR
 MethodSignature ::= (MethodSignature) MethodSignatureWithoutParams MethodParams
                   ;
 
-MethodSignatureWithoutParams ::= (MethodSignatureWithoutParams) ReturnType IDENT:methodName
+MethodSignatureWithoutParams ::= (MethodSignatureWithoutParams) ReturnType:returnType IDENT:methodName
                                ;
 
 MethodParams ::= (ValidMethodParams)     LPAREN FormalParams RPAREN
                | (ErroneousMethodParams) LPAREN error RPAREN
                ;
 
-ReturnType ::= (NonVoidReturnType) Type
+ReturnType ::= (NonVoidReturnType) Type:type
              | (VoidReturnType)    VOID
              ;
 
