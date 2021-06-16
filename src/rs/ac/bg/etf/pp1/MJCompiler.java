@@ -52,6 +52,8 @@ public class MJCompiler implements Compiler {
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
             program.traverseBottomUp(semanticAnalyzer);
 
+            MJSymbolTable.dump(new MJDumpSymbolTableVisitor());
+
             if (this.hasCompileTimeErrors()) {
                 return errors;
             }
