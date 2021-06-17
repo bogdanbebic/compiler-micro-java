@@ -273,12 +273,10 @@ Term ::= (SingleFactor) Factor
        | (MulOpTerm)    Term MulOp Factor
        ;
 
-Factor ::= (DesignatorFactor)     Designator OptionalFunctionCall
-         | (NumberConstantFactor) NUMBER
-         | (CharConstantFactor)   CHAR
-         | (BoolConstantFactor)   BOOL
-         | (AllocationFactor)     NEW Type OptionalArrayIndexing
-         | (ParenthesesFactor)    LPAREN Expr RPAREN
+Factor ::= (DesignatorFactor)  Designator OptionalFunctionCall
+         | (ConstantFactor)    Constant
+         | (AllocationFactor)  NEW Type OptionalArrayIndexing
+         | (ParenthesesFactor) LPAREN Expr RPAREN
          ;
 
 Designator ::= (SingleIdentifier)       IDENT:designator
