@@ -6,6 +6,9 @@ import rs.ac.bg.etf.pp1.test.CompilerError;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class SemanticAnalyzer extends VisitorAdaptor {
 
     private Struct currentDeclarationType = MJSymbolTable.noType;
@@ -13,6 +16,8 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private Obj currentMethod;
     private boolean inClassDefinition = false;
     private boolean inMethodDeclaration = false;
+    private boolean inMethodSignature = false;
+    private final Map<String, Obj> currentMethodParams = new LinkedHashMap<>();
 
     @Override
     public void visit(ClassDeclarationStart classDeclarationStart) {
@@ -49,6 +54,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(MethodSignatureWithoutParams methodSignatureWithoutParams) {
         super.visit(methodSignatureWithoutParams);
         inMethodDeclaration = true;
+        inMethodSignature = true;
         Struct returnTypeStruct = new Struct(Struct.None);
         if (methodSignatureWithoutParams.getReturnType() instanceof NonVoidReturnType) {
             NonVoidReturnType returnType = (NonVoidReturnType) methodSignatureWithoutParams.getReturnType();
@@ -63,11 +69,26 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     }
 
     @Override
+    public void visit(ValidMethodParams validMethodParams) {
+        super.visit(validMethodParams);
+        MJSymbolTable.chainLocalSymbols(currentMethod);
+        int numberOfFormalParams = currentMethodParams.size();
+        currentMethod.setLevel(numberOfFormalParams);
+    }
+
+    @Override
+    public void visit(MethodSignature MethodSignature) {
+        super.visit(MethodSignature);
+        inMethodSignature = false;
+    }
+
+    @Override
     public void visit(MethodDecl methodDecl) {
         super.visit(methodDecl);
         inMethodDeclaration = false;
         MJSymbolTable.chainLocalSymbols(currentMethod);
         MJSymbolTable.closeScope();
+        currentMethodParams.clear();
         currentMethod = null;
     }
 
@@ -137,14 +158,20 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
         int kind = inClassDefinition && !inMethodDeclaration ? Obj.Fld : Obj.Var;
 
+        Obj variableObj;
+        String variableName = singleVariableDecl.getVariableName();
         if (singleVariableDecl.getOptionalArraySpecifier() instanceof ArraySpecifier) {
             // array variable declaration
             Struct arrayStruct = new Struct(Struct.Array, currentDeclarationType);
-            MJSymbolTable.insert(kind, singleVariableDecl.getVariableName(), arrayStruct);
+            variableObj = MJSymbolTable.insert(kind, variableName, arrayStruct);
         }
         else {
             // scalar variable declaration
-            MJSymbolTable.insert(kind, singleVariableDecl.getVariableName(), currentDeclarationType);
+            variableObj = MJSymbolTable.insert(kind, variableName, currentDeclarationType);
+        }
+
+        if (inMethodSignature) {
+            currentMethodParams.put(variableName, variableObj);
         }
     }
 
