@@ -239,7 +239,7 @@ ConditionTerm ::= (FirstConditionFactor) ConditionFactor
                 ;
 
 ConditionFactor ::= (FirstConditionExpr) Expr
-                  | (ConditionExprList)  ConditionFactor RelOp Expr
+                  | (ConditionExprRelOp) Expr RelOp Expr
                   ;
 
 OptionalExpr ::= (NoExpression) /* epsilon */
