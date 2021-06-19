@@ -86,6 +86,7 @@ nonterminal OptionalWidthSpecifier;
 nonterminal Condition, ConditionTerm, ConditionFactor;
 nonterminal OptionalExpr, Expr, ExprTermList, SwitchExpr;
 nonterminal ExpressionTerm, Term, Factor;
+nonterminal SwitchBodyStart, SwitchBodyEnd;
 nonterminal CaseLabelList, CaseLabel;
 nonterminal Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
@@ -264,8 +265,14 @@ ExprTermList ::= (SingleTerm)      ExpressionTerm
                | (AddOpExpression) ExprTermList AddOp Term
                ;
 
-SwitchExpr ::= (SwitchExpression) SWITCH LPAREN Expr RPAREN LBRACE CaseLabelList RBRACE
+SwitchExpr ::= (SwitchExpression) SWITCH LPAREN Expr RPAREN SwitchBodyStart CaseLabelList SwitchBodyEnd
              ;
+
+SwitchBodyStart ::= (SwitchBodyStart) LBRACE
+                  ;
+
+SwitchBodyEnd ::= (SwitchBodyEnd) RBRACE
+                ;
 
 CaseLabelList ::= (NoCaseLabels)  /* epsilon */
                 | (CaseLabelDecl) CaseLabelList CaseLabel
