@@ -80,6 +80,7 @@ nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
 nonterminal FormalParamsList, SingleFormalParamDecl;
 nonterminal Statement;
 nonterminal DesignatorStatement;
+nonterminal DoWhileStatement, DoWhileBodyStart, DoWhileBodyEnd;
 nonterminal IfCondition, OptionalElseBranch;
 nonterminal OptionalWidthSpecifier;
 nonterminal Condition, ConditionTerm, ConditionFactor;
@@ -201,7 +202,7 @@ StatementList ::= (NoStatements) /* epsilon */
 
 Statement ::= (DesignatorStmt) DesignatorStatement SEMI
             | (IfElseStmt)     IF IfCondition Statement OptionalElseBranch
-            | (DoWhileStmt)    DO Statement WHILE IfCondition SEMI
+            | (DoWhileStmt)    DoWhileStatement SEMI
             | (YieldStmt)      YIELD Expr SEMI
             | (BreakStmt)      BREAK SEMI
             | (ContinueStmt)   CONTINUE SEMI
@@ -229,6 +230,15 @@ DesignatorStatement ::= (AssignmentStmt)    Designator AssignOp Expr
                       | (DesignatorIncStmt) Designator INC
                       | (DesignatorDecStmt) Designator DEC
                       ;
+
+DoWhileStatement ::= (DoWhileStatement) DoWhileBodyStart Statement DoWhileBodyEnd IfCondition
+                   ;
+
+DoWhileBodyStart ::= (DoWhileBodyStart) DO
+               ;
+
+DoWhileBodyEnd ::= (DoWhileBodyEnd) WHILE
+                 ;
 
 Condition ::= (FirstConditionTerm) ConditionTerm
             | (ConditionTermList)  Condition LOR ConditionTerm
