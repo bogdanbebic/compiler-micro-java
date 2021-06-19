@@ -18,6 +18,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private boolean inMethodDeclaration = false;
     private boolean inMethodSignature = false;
     private final Map<String, Obj> currentMethodParams = new LinkedHashMap<>();
+    private Struct baseClass = MJSymbolTable.noType;
 
     private boolean isDoubleDeclaration(String identifier, int level) {
         Obj obj = MJSymbolTable.find(identifier);
@@ -66,6 +67,25 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     }
 
     @Override
+    public void visit(InheritanceDecl inheritanceDecl) {
+        super.visit(inheritanceDecl);
+        Type type = inheritanceDecl.getType();
+        String typename = type.getTypename();
+        if (type.struct.getKind() != Struct.Class) {
+            report_error("Type '" + typename + "' is not a valid base class", inheritanceDecl);
+            return;
+        }
+
+        baseClass = type.struct;
+    }
+
+    @Override
+    public void visit(NoInheritanceDecl NoInheritanceDecl) {
+        super.visit(NoInheritanceDecl);
+        baseClass = MJSymbolTable.noType;
+    }
+
+    @Override
     public void visit(ClassDeclEnd classDeclEnd) {
         super.visit(classDeclEnd);
         if (!inClassDefinition)
@@ -73,6 +93,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
         MJSymbolTable.chainLocalSymbols(currentClass.getType());
         MJSymbolTable.closeScope();
+        currentClass.getType().setElementType(baseClass);
         currentClass = null;
         inClassDefinition = false;
     }
