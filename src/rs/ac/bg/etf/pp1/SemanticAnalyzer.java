@@ -209,7 +209,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         }
     }
 
-    Logger log = Logger.getLogger(getClass());
+    private final Logger log = Logger.getLogger(getClass());
 
     private void report_error(String message, SyntaxNode syntaxNode) {
         StringBuilder msg = new StringBuilder(message);
