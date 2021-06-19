@@ -20,6 +20,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private final Map<String, Obj> currentMethodParams = new LinkedHashMap<>();
     private Struct baseClass = MJSymbolTable.noType;
     private boolean inDoWhileBody = false;
+    private boolean inSwitchBody = false;
 
     private boolean isDoubleDeclaration(String identifier, int level) {
         Obj obj = MJSymbolTable.find(identifier);
@@ -266,6 +267,26 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         super.visit(continueStmt);
         if (!inDoWhileBody)
             report_error("continue statement must not be outside of do-while", continueStmt);
+    }
+
+    @Override
+    public void visit(SwitchBodyStart switchBodyStart) {
+        super.visit(switchBodyStart);
+        inSwitchBody = true;
+    }
+
+    @Override
+    public void visit(SwitchBodyEnd switchBodyEnd) {
+        super.visit(switchBodyEnd);
+        inSwitchBody = false;
+    }
+
+    @Override
+    public void visit(YieldStmt yieldStmt) {
+        super.visit(yieldStmt);
+        if (!inSwitchBody) {
+            report_error("yield statement must not be outside of switch", yieldStmt);
+        }
     }
 
     @Override
