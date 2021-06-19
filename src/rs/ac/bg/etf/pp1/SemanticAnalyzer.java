@@ -19,40 +19,74 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private boolean inMethodSignature = false;
     private final Map<String, Obj> currentMethodParams = new LinkedHashMap<>();
 
+    private boolean isDoubleDeclaration(String identifier, int level) {
+        Obj obj = MJSymbolTable.find(identifier);
+        // not in symbol table or not in the same scope level
+        if (MJSymbolTable.noObj.equals(obj) || obj.getLevel() != level)
+            return false;
+
+        // check if method of the same name exists in the same class
+        Struct currentType = obj.getType();
+        Obj foundObj = MJSymbolTable.currentScope().findSymbol(identifier);
+        if (foundObj == null ||
+                inClassDefinition &&
+                obj.getKind() == Obj.Meth &&
+                !currentType.equals(foundObj.getType()))
+            return false;
+
+        // same scope level
+        // obj found in symbol table is not a class field or
+        // current declaration is not method parameter
+        return obj.getKind() != Obj.Fld || !inMethodSignature;
+    }
+
+    private void visitClassDecl(String className, ClassDeclStart classDeclStart) {
+        if (isDoubleDeclaration(className, 0)) {
+            report_error("Identifier '" + className + "' already defined", classDeclStart);
+            return;
+        }
+
+        inClassDefinition = true;
+        currentClass = MJSymbolTable.insert(Obj.Type, className, new Struct(Struct.Class));
+        MJSymbolTable.openScope();
+    }
+
     @Override
     public void visit(ClassDeclarationStart classDeclarationStart) {
         super.visit(classDeclarationStart);
-        inClassDefinition = true;
-        currentClass = MJSymbolTable.insert(
-                Obj.Type,
-                classDeclarationStart.getClassName(),
-                new Struct(Struct.Class));
-        MJSymbolTable.openScope();
+        String className = classDeclarationStart.getClassName();
+        visitClassDecl(className, classDeclarationStart);
     }
 
     @Override
     public void visit(ErroneousInheritance erroneousInheritance) {
         super.visit(erroneousInheritance);
-        inClassDefinition = true;
-        currentClass = MJSymbolTable.insert(
-                Obj.Type,
-                erroneousInheritance.getClassName(),
-                new Struct(Struct.Class));
-        MJSymbolTable.openScope();
+        String className = erroneousInheritance.getClassName();
+        visitClassDecl(className, erroneousInheritance);
     }
 
     @Override
     public void visit(ClassDeclEnd classDeclEnd) {
         super.visit(classDeclEnd);
-        inClassDefinition = false;
+        if (!inClassDefinition)
+            return;
+
         MJSymbolTable.chainLocalSymbols(currentClass.getType());
         MJSymbolTable.closeScope();
         currentClass = null;
+        inClassDefinition = false;
     }
 
     @Override
     public void visit(MethodSignatureWithoutParams methodSignatureWithoutParams) {
         super.visit(methodSignatureWithoutParams);
+        String methodName = methodSignatureWithoutParams.getMethodName();
+        int level = inClassDefinition ? 1 : 0;
+        if (isDoubleDeclaration(methodName, level)) {
+            report_error("Identifier '" + methodName + "' already defined", methodSignatureWithoutParams);
+            return;
+        }
+
         inMethodDeclaration = true;
         inMethodSignature = true;
         Struct returnTypeStruct = new Struct(Struct.None);
@@ -61,16 +95,16 @@ public class SemanticAnalyzer extends VisitorAdaptor {
             returnTypeStruct = returnType.getType().struct;
         }
 
-        currentMethod = MJSymbolTable.insert(
-                Obj.Meth,
-                methodSignatureWithoutParams.getMethodName(),
-                returnTypeStruct);
+        currentMethod = MJSymbolTable.insert(Obj.Meth, methodName, returnTypeStruct);
         MJSymbolTable.openScope();
     }
 
     @Override
     public void visit(ValidMethodParams validMethodParams) {
         super.visit(validMethodParams);
+        if (!inMethodDeclaration)
+            return;
+
         MJSymbolTable.chainLocalSymbols(currentMethod);
         int numberOfFormalParams = currentMethodParams.size();
         currentMethod.setLevel(numberOfFormalParams);
@@ -85,11 +119,14 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(MethodDecl methodDecl) {
         super.visit(methodDecl);
-        inMethodDeclaration = false;
+        if (!inMethodDeclaration)
+            return;
+
         MJSymbolTable.chainLocalSymbols(currentMethod);
         MJSymbolTable.closeScope();
         currentMethodParams.clear();
         currentMethod = null;
+        inMethodDeclaration = false;
     }
 
     @Override
@@ -114,7 +151,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(SingleConstantDecl singleConstantDecl) {
         super.visit(singleConstantDecl);
-        // TODO: check if already defined
+        String constantName = singleConstantDecl.getConstantName();
+        if (isDoubleDeclaration(constantName, 0)) {
+            report_error("Identifier '" + constantName + "' already defined", singleConstantDecl);
+            return;
+        }
 
         int constantValue;
         Constant constant = singleConstantDecl.getConstant();
@@ -147,19 +188,23 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         }
 
         // insert the constant to the symbol table
-        Obj constObj = MJSymbolTable.insert(Obj.Con, singleConstantDecl.getConstantName(), currentDeclarationType);
+        Obj constObj = MJSymbolTable.insert(Obj.Con, constantName, currentDeclarationType);
         constObj.setAdr(constantValue);
     }
 
     @Override
     public void visit(SingleVariableDecl singleVariableDecl) {
         super.visit(singleVariableDecl);
-        // TODO: check if already defined
+        String variableName = singleVariableDecl.getVariableName();
+        int level = inClassDefinition || inMethodDeclaration ? 1 : 0;
+        if (isDoubleDeclaration(variableName, level)) {
+            report_error("Identifier '" + variableName + "' already defined", singleVariableDecl);
+            return;
+        }
 
         int kind = inClassDefinition && !inMethodDeclaration ? Obj.Fld : Obj.Var;
 
         Obj variableObj;
-        String variableName = singleVariableDecl.getVariableName();
         if (singleVariableDecl.getOptionalArraySpecifier() instanceof ArraySpecifier) {
             // array variable declaration
             Struct arrayStruct = new Struct(Struct.Array, currentDeclarationType);
