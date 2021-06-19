@@ -186,7 +186,27 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(Program program) {
         super.visit(program);
         MJSymbolTable.chainLocalSymbols(program.getProgramHeader().obj);
+        Obj mainObj = MJSymbolTable.find("main");
         MJSymbolTable.closeScope();
+
+        // check main semantics
+        if (MJSymbolTable.noObj.equals(mainObj)) {
+            report_error("No main defined", null);
+            return;
+        }
+
+        if (mainObj.getKind() != Obj.Meth) {
+            report_error("main must be defined as a method", null);
+            return;
+        }
+
+        if (mainObj.getLevel() != 0) {
+            report_error("main must not take formal params", null);
+        }
+
+        if (mainObj.getType().getKind() != Struct.None) {
+            report_error("main must be defined with type void", null);
+        }
     }
 
     Logger log = Logger.getLogger(getClass());
