@@ -18,7 +18,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private boolean inMethodDeclaration = false;
     private boolean inMethodSignature = false;
     private final Map<String, Obj> currentMethodParams = new LinkedHashMap<>();
-    private Struct baseClass = MJSymbolTable.noType;
+    private Struct baseClass = null;
     private boolean inDoWhileBody = false;
     private boolean inSwitchBody = false;
     private int defaultCaseBranchesCount = 0;
@@ -85,7 +85,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(NoInheritanceDecl NoInheritanceDecl) {
         super.visit(NoInheritanceDecl);
-        baseClass = MJSymbolTable.noType;
+        baseClass = null;
     }
 
     @Override
