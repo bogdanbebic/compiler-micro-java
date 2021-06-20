@@ -23,6 +23,153 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private boolean inSwitchBody = false;
     private int defaultCaseBranchesCount = 0;
 
+    @Override
+    public void visit(ExprTermListDecl exprTermListDecl) {
+        super.visit(exprTermListDecl);
+        exprTermListDecl.struct = exprTermListDecl.getExprTermList().struct;
+    }
+
+    @Override
+    public void visit(SingleTerm singleTerm) {
+        super.visit(singleTerm);
+        singleTerm.struct = singleTerm.getExpressionTerm().struct;
+    }
+
+    @Override
+    public void visit(AddOpExpression addOpExpression) {
+        super.visit(addOpExpression);
+        if (MJSymbolTable.intType.equals(addOpExpression.getExprTermList().struct) &&
+                MJSymbolTable.intType.equals(addOpExpression.getTerm().struct)) {
+            addOpExpression.struct = MJSymbolTable.intType;
+            return;
+        }
+
+        // not compatible with addition
+        addOpExpression.struct = MJSymbolTable.noType;
+
+        if (!MJSymbolTable.noType.equals(addOpExpression.getExprTermList().struct) &&
+                !MJSymbolTable.noType.equals(addOpExpression.getTerm().struct)) {
+            report_error("Invalid types for addition operator", addOpExpression);
+        }
+    }
+
+    @Override
+    public void visit(PositiveTerm positiveTerm) {
+        super.visit(positiveTerm);
+        positiveTerm.struct = positiveTerm.getTerm().struct;
+    }
+
+    @Override
+    public void visit(NegativeTerm negativeTerm) {
+        super.visit(negativeTerm);
+        if (!MJSymbolTable.intType.equals(negativeTerm.getTerm().struct) &&
+                !MJSymbolTable.noType.equals(negativeTerm.getTerm().struct)) {
+            report_error("Invalid type for unary -", negativeTerm);
+            negativeTerm.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        negativeTerm.struct = negativeTerm.getTerm().struct;
+    }
+
+    @Override
+    public void visit(SingleFactor singleFactor) {
+        super.visit(singleFactor);
+        singleFactor.struct = singleFactor.getFactor().struct;
+    }
+
+    @Override
+    public void visit(MulOpTerm mulOpTerm) {
+        super.visit(mulOpTerm);
+        if (MJSymbolTable.intType.equals(mulOpTerm.getTerm().struct) &&
+                MJSymbolTable.intType.equals(mulOpTerm.getFactor().struct)) {
+            mulOpTerm.struct = MJSymbolTable.intType;
+            return;
+        }
+
+        // not compatible with multiplication
+        mulOpTerm.struct = MJSymbolTable.noType;
+
+        if (!MJSymbolTable.noType.equals(mulOpTerm.getTerm().struct) &&
+                !MJSymbolTable.noType.equals(mulOpTerm.getFactor().struct)) {
+            report_error("Invalid types for multiplication operator", mulOpTerm);
+        }
+    }
+
+    @Override
+    public void visit(DesignatorFactor designatorFactor) {
+        super.visit(designatorFactor);
+        designatorFactor.struct = designatorFactor.getDesignator().struct;
+    }
+
+    @Override
+    public void visit(SingleIdentifier singleIdentifier) {
+        super.visit(singleIdentifier);
+        String identifier = singleIdentifier.getDesignator();
+        Obj obj = MJSymbolTable.find(identifier);
+        if (MJSymbolTable.noObj.equals(obj)) {
+            report_error("Undeclared identifier '" + identifier + "'", singleIdentifier);
+            return;
+        }
+
+        singleIdentifier.struct = obj.getType();
+    }
+
+    @Override
+    public void visit(DesignatorMemberAccess designatorMemberAccess) {
+        super.visit(designatorMemberAccess);
+        designatorMemberAccess.struct = MJSymbolTable.noType;
+    }
+
+    @Override
+    public void visit(DesignatorArrayIndex designatorArrayIndex) {
+        super.visit(designatorArrayIndex);
+        designatorArrayIndex.struct = designatorArrayIndex.getDesignator().struct.getElemType();
+    }
+
+    @Override
+    public void visit(ConstantFactor constantFactor) {
+        super.visit(constantFactor);
+        Constant constant = constantFactor.getConstant();
+        if (constant instanceof NumberConstant) {
+            constantFactor.struct = MJSymbolTable.intType;
+        }
+        else if (constant instanceof CharConstant) {
+            constantFactor.struct = MJSymbolTable.charType;
+        }
+        else if (constant instanceof BoolConstant) {
+            constantFactor.struct = MJSymbolTable.boolType;
+        }
+        else {
+            // should never happen
+            constantFactor.struct = MJSymbolTable.noType;
+            report_error("Invalid constant factor", constantFactor);
+        }
+    }
+
+    @Override
+    public void visit(AllocationFactor allocationFactor) {
+        super.visit(allocationFactor);
+        Struct type = allocationFactor.getType().struct;
+        if (allocationFactor.getOptionalArrayIndexing() instanceof ArrayIndex) {
+            allocationFactor.struct = new Struct(Struct.Array, type);
+        }
+        else if (allocationFactor.getOptionalArrayIndexing() instanceof NoArrayIndexing) {
+            allocationFactor.struct = type;
+        }
+        else {
+            // should never happen
+            allocationFactor.struct = MJSymbolTable.noType;
+            report_error("Invalid allocation factor", allocationFactor);
+        }
+    }
+
+    @Override
+    public void visit(ParenthesesFactor parenthesesFactor) {
+        super.visit(parenthesesFactor);
+        parenthesesFactor.struct = parenthesesFactor.getExpr().struct;
+    }
+
     private boolean isDoubleDeclaration(String identifier, int level) {
         Obj obj = MJSymbolTable.find(identifier);
         // not in symbol table or not in the same scope level
