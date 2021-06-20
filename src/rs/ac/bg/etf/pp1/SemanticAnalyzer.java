@@ -21,6 +21,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private Struct baseClass = MJSymbolTable.noType;
     private boolean inDoWhileBody = false;
     private boolean inSwitchBody = false;
+    private int defaultCaseBranchesCount = 0;
 
     private boolean isDoubleDeclaration(String identifier, int level) {
         Obj obj = MJSymbolTable.find(identifier);
@@ -273,12 +274,24 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(SwitchBodyStart switchBodyStart) {
         super.visit(switchBodyStart);
         inSwitchBody = true;
+        defaultCaseBranchesCount = 0;
     }
 
     @Override
-    public void visit(SwitchBodyEnd switchBodyEnd) {
-        super.visit(switchBodyEnd);
+    public void visit(SwitchExpression switchExpression) {
+        super.visit(switchExpression);
         inSwitchBody = false;
+        if (defaultCaseBranchesCount == 0) {
+            report_error("Missing default case", switchExpression);
+        }
+    }
+
+    @Override
+    public void visit(DefaultCaseLabel defaultCaseLabel) {
+        super.visit(defaultCaseLabel);
+        if (++defaultCaseBranchesCount > 1) {
+            report_error("Duplicate default case label", defaultCaseLabel.getParent());
+        }
     }
 
     @Override

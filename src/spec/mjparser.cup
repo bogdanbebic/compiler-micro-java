@@ -87,7 +87,7 @@ nonterminal Condition, ConditionTerm, ConditionFactor;
 nonterminal OptionalExpr, Expr, ExprTermList, SwitchExpr;
 nonterminal ExpressionTerm, Term, Factor;
 nonterminal SwitchBodyStart, SwitchBodyEnd;
-nonterminal CaseLabelList, CaseLabel;
+nonterminal CaseLabelList, CaseLabel, Label;
 nonterminal Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
 nonterminal OptionalArrayIndexing, ArrayIndexing, FieldAccess;
@@ -278,9 +278,12 @@ CaseLabelList ::= (NoCaseLabels)  /* epsilon */
                 | (CaseLabelDecl) CaseLabelList CaseLabel
                 ;
 
-CaseLabel ::= (NonDefaultCaseLabel) CASE NUMBER COLON StatementList
-            | (DefaultCaseLabel)    DEFAULT COLON StatementList
+CaseLabel ::= (CaseLabel) Label StatementList
             ;
+
+Label ::= (NonDefaultCaseLabel) CASE NUMBER COLON
+        | (DefaultCaseLabel)    DEFAULT COLON
+        ;
 
 ExpressionTerm ::= (PositiveTerm) Term
                  | (NegativeTerm) MINUS Term
