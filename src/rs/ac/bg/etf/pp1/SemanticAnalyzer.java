@@ -227,7 +227,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(DesignatorFactor designatorFactor) {
         super.visit(designatorFactor);
-        designatorFactor.struct = designatorFactor.getDesignator().struct;
+        designatorFactor.struct = designatorFactor.getDesignator().obj.getType();
 
         if (designatorFactor.getOptionalFunctionCall() instanceof FunctionCall) {
             // NOTE: if there are no classes this is
@@ -248,7 +248,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
             return;
         }
 
-        singleIdentifier.struct = obj.getType();
+        singleIdentifier.obj = obj;
 
         // usage
         String name = obj.getName();
@@ -276,13 +276,13 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(DesignatorMemberAccess designatorMemberAccess) {
         super.visit(designatorMemberAccess);
-        designatorMemberAccess.struct = MJSymbolTable.noType;
+        designatorMemberAccess.obj = MJSymbolTable.noObj;
     }
 
     @Override
     public void visit(DesignatorArrayIndex designatorArrayIndex) {
         super.visit(designatorArrayIndex);
-        designatorArrayIndex.struct = designatorArrayIndex.getDesignator().struct.getElemType();
+        designatorArrayIndex.obj = designatorArrayIndex.getDesignator().obj;
 
         String name = getLastIdentifier(designatorArrayIndex.getDesignator());
         report_usage_info("Found indexing of array '" + name + "'", designatorArrayIndex, name);
