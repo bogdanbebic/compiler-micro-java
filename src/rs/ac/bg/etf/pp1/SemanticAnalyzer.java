@@ -6,7 +6,9 @@ import rs.ac.bg.etf.pp1.test.CompilerError;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SemanticAnalyzer extends VisitorAdaptor {
@@ -22,6 +24,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private boolean inDoWhileBody = false;
     private boolean inSwitchBody = false;
     private int defaultCaseBranchesCount = 0;
+    private final List<Struct> switchYieldTypes = new ArrayList<>();
 
     @Override
     public void visit(FirstConditionTerm firstConditionTerm) {
@@ -525,6 +528,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         super.visit(switchBodyStart);
         inSwitchBody = true;
         defaultCaseBranchesCount = 0;
+        switchYieldTypes.clear();
     }
 
     @Override
@@ -533,7 +537,33 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         inSwitchBody = false;
         if (defaultCaseBranchesCount == 0) {
             report_error("Missing default case", switchExpression);
+            switchExpression.struct = MJSymbolTable.noType;
+            return;
         }
+
+        if (switchYieldTypes.isEmpty()) {
+            report_error("Missing yield statement in switch", switchExpression);
+            switchExpression.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        if (switchYieldTypes.stream().anyMatch(MJSymbolTable.noType::equals)) {
+            switchExpression.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        // it may be better to find the LUB of the yield types
+        // and set it as the switch return type
+        // NOTE: if there are no classes, then there is
+        // no LUB as there is no type hierarchy
+        Struct switchYieldStruct = switchYieldTypes.get(0);
+        if (switchYieldTypes.stream().allMatch(switchYieldStruct::equals)) {
+            switchExpression.struct = switchYieldStruct;
+            return;
+        }
+
+        switchExpression.struct = MJSymbolTable.noType;
+        report_error("Different types in yield statements in switch", switchExpression);
     }
 
     @Override
@@ -549,7 +579,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         super.visit(yieldStmt);
         if (!inSwitchBody) {
             report_error("yield statement must not be outside of switch", yieldStmt);
+            return;
         }
+
+        switchYieldTypes.add(yieldStmt.getExpr().struct);
     }
 
     @Override
