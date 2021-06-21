@@ -89,7 +89,7 @@ nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, ExprTermList, SwitchExp
 nonterminal rs.etf.pp1.symboltable.concepts.Struct ExpressionTerm, Term, Factor;
 nonterminal SwitchBodyStart, SwitchBodyEnd;
 nonterminal CaseLabelList, CaseLabel, Label;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Designator;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
 nonterminal OptionalArrayIndexing, ArrayIndexing, FieldAccess;
 nonterminal AssignOp, RelOp, AddOp, MulOp;
