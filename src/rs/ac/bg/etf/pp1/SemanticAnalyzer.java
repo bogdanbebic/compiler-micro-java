@@ -24,6 +24,109 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private int defaultCaseBranchesCount = 0;
 
     @Override
+    public void visit(FirstConditionTerm firstConditionTerm) {
+        super.visit(firstConditionTerm);
+        ConditionTerm term = firstConditionTerm.getConditionTerm();
+        if (!MJSymbolTable.boolType.equals(term.struct) &&
+                !MJSymbolTable.noType.equals(term.struct)) {
+            report_error("Invalid type for condition", firstConditionTerm);
+            firstConditionTerm.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        firstConditionTerm.struct = term.struct;
+    }
+
+    @Override
+    public void visit(ConditionTermList conditionTermList) {
+        super.visit(conditionTermList);
+        Struct lhsStruct = conditionTermList.getCondition().struct;
+        Struct rhsStruct = conditionTermList.getConditionTerm().struct;
+        if (MJSymbolTable.boolType.equals(lhsStruct) && MJSymbolTable.boolType.equals(rhsStruct)) {
+            conditionTermList.struct = MJSymbolTable.boolType;
+            return;
+        }
+
+        conditionTermList.struct = MJSymbolTable.noType;
+        if (!MJSymbolTable.noType.equals(lhsStruct) && !MJSymbolTable.noType.equals(rhsStruct)) {
+            report_error("Invalid types for || operator", conditionTermList);
+        }
+    }
+
+    @Override
+    public void visit(FirstConditionFactor firstConditionFactor) {
+        super.visit(firstConditionFactor);
+        ConditionFactor factor = firstConditionFactor.getConditionFactor();
+        if (!MJSymbolTable.boolType.equals(factor.struct) &&
+                !MJSymbolTable.noType.equals(factor.struct)) {
+            report_error("Invalid type for condition", firstConditionFactor);
+            firstConditionFactor.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        firstConditionFactor.struct = factor.struct;
+    }
+
+    @Override
+    public void visit(ConditionFactorList conditionFactorList) {
+        super.visit(conditionFactorList);
+        Struct lhsStruct = conditionFactorList.getConditionTerm().struct;
+        Struct rhsStruct = conditionFactorList.getConditionFactor().struct;
+        if (MJSymbolTable.boolType.equals(lhsStruct) && MJSymbolTable.boolType.equals(rhsStruct)) {
+            conditionFactorList.struct = MJSymbolTable.boolType;
+            return;
+        }
+
+        conditionFactorList.struct = MJSymbolTable.noType;
+
+        if (!MJSymbolTable.noType.equals(lhsStruct) && !MJSymbolTable.noType.equals(rhsStruct)) {
+            report_error("Invalid types for && operator", conditionFactorList);
+        }
+    }
+
+    @Override
+    public void visit(FirstConditionExpr firstConditionExpr) {
+        super.visit(firstConditionExpr);
+        Expr expr = firstConditionExpr.getExpr();
+        if (!MJSymbolTable.boolType.equals(expr.struct) &&
+                !MJSymbolTable.noType.equals(expr.struct)) {
+            report_error("Invalid type for condition", firstConditionExpr);
+            firstConditionExpr.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        firstConditionExpr.struct = expr.struct;
+    }
+
+    @Override
+    public void visit(ConditionExprRelOp conditionExprRelOp) {
+        super.visit(conditionExprRelOp);
+        Struct lhsStruct = conditionExprRelOp.getExpr().struct;
+        Struct rhsStruct = conditionExprRelOp.getExpr1().struct;
+        if (MJSymbolTable.noType.equals(lhsStruct) || MJSymbolTable.noType.equals(rhsStruct)) {
+            conditionExprRelOp.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        if (!lhsStruct.compatibleWith(rhsStruct)) {
+            report_error("Types in relational operation not compatible", conditionExprRelOp);
+            conditionExprRelOp.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        RelOp relOp = conditionExprRelOp.getRelOp();
+        if ((lhsStruct.isRefType() || rhsStruct.isRefType()) &&
+                !(relOp instanceof EqualOp) &&
+                !(relOp instanceof NotEqualOp)) {
+            report_error("Operator cannot be applied to reference type", conditionExprRelOp);
+            conditionExprRelOp.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        conditionExprRelOp.struct = MJSymbolTable.boolType;
+    }
+
+    @Override
     public void visit(ExprTermListDecl exprTermListDecl) {
         super.visit(exprTermListDecl);
         exprTermListDecl.struct = exprTermListDecl.getExprTermList().struct;

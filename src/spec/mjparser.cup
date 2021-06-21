@@ -83,7 +83,7 @@ nonterminal DesignatorStatement;
 nonterminal DoWhileStatement, DoWhileBodyStart, DoWhileBodyEnd;
 nonterminal IfCondition, OptionalElseBranch;
 nonterminal OptionalWidthSpecifier;
-nonterminal Condition, ConditionTerm, ConditionFactor;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Condition, ConditionTerm, ConditionFactor;
 nonterminal OptionalExpr;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, ExprTermList, SwitchExpr;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct ExpressionTerm, Term, Factor;
