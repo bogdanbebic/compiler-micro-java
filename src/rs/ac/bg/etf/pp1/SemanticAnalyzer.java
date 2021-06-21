@@ -642,11 +642,21 @@ public class SemanticAnalyzer extends VisitorAdaptor {
             msg.append(" on line ").append(line);
 
         log.info(msg.toString());
-        MJCompiler.getInstance().addError(new CompilerError(
-                line,
-                message,
-                CompilerError.CompilerErrorType.SEMANTIC_ERROR
-        ));
     }
 
+    private void report_usage_info(String message, SyntaxNode syntaxNode, String identifier) {
+        StringBuilder msg = new StringBuilder(message);
+        int line = syntaxNode != null ? syntaxNode.getLine() : 0;
+        if (syntaxNode != null)
+            msg.append(" on line ").append(line);
+
+        Obj obj = MJSymbolTable.find(identifier);
+        if (!MJSymbolTable.noObj.equals(obj)) {
+            MJDumpSymbolTableVisitor visitor = new MJDumpSymbolTableVisitor();
+            obj.accept(visitor);
+            msg.append(": ").append(visitor.getOutput());
+        }
+
+        log.info(msg.toString());
+    }
 }
