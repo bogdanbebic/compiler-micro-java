@@ -492,8 +492,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
             variableObj = MJSymbolTable.insert(kind, variableName, currentDeclarationType);
         }
 
+        variableObj.setLevel(level);
+
         if (inMethodSignature) {
             currentMethodParams.put(variableName, variableObj);
+            variableObj.setFpPos(currentMethodParams.size());
         }
     }
 
