@@ -219,6 +219,28 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         }
 
         singleIdentifier.struct = obj.getType();
+
+        // usage
+        String name = obj.getName();
+        if (obj.getKind() == Obj.Con) {
+            report_usage_info("Found global constant '" + name + "'", singleIdentifier, name);
+        }
+        else if (obj.getKind() == Obj.Var) {
+            if (obj.getLevel() == 0) {
+                // global variable
+                report_usage_info("Found global variable '" + name + "'", singleIdentifier, name);
+            }
+            else if (obj.getLevel() == 1) {
+                if (obj.getFpPos() > 0) {
+                    // function argument
+                    report_usage_info("Found function param '" + name + "'", singleIdentifier, name);
+                }
+                else {
+                    // local variable
+                    report_usage_info("Found local variable '" + name + "'", singleIdentifier, name);
+                }
+            }
+        }
     }
 
     @Override
