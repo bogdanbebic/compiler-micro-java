@@ -26,6 +26,28 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private int defaultCaseBranchesCount = 0;
     private final List<Struct> switchYieldTypes = new ArrayList<>();
 
+    private String getLastIdentifier(Designator designator) {
+        if (designator instanceof SingleIdentifier) {
+            return ((SingleIdentifier) designator).getDesignator();
+        }
+        else if (designator instanceof DesignatorMemberAccess) {
+            return ((DesignatorMemberAccess) designator).getFieldAccess().getFieldName();
+        }
+        else if (designator instanceof DesignatorArrayIndex) {
+            return getLastIdentifier(((DesignatorArrayIndex) designator).getDesignator());
+        }
+        else {
+            return "";
+        }
+    }
+
+    @Override
+    public void visit(FunctionCallStmt functionCallStmt) {
+        super.visit(functionCallStmt);
+        String name = getLastIdentifier(functionCallStmt.getDesignator());
+        report_usage_info("Found call of function '" + name + "'", functionCallStmt, name);
+    }
+
     @Override
     public void visit(FirstConditionTerm firstConditionTerm) {
         super.visit(firstConditionTerm);
@@ -206,6 +228,14 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(DesignatorFactor designatorFactor) {
         super.visit(designatorFactor);
         designatorFactor.struct = designatorFactor.getDesignator().struct;
+
+        if (designatorFactor.getOptionalFunctionCall() instanceof FunctionCall) {
+            // NOTE: if there are no classes this is
+            // a call of a global function because there
+            // are no class methods available
+            String name = getLastIdentifier(designatorFactor.getDesignator());
+            report_usage_info("Found call of function '" + name + "'", designatorFactor, name);
+        }
     }
 
     @Override
@@ -253,6 +283,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(DesignatorArrayIndex designatorArrayIndex) {
         super.visit(designatorArrayIndex);
         designatorArrayIndex.struct = designatorArrayIndex.getDesignator().struct.getElemType();
+
+        String name = getLastIdentifier(designatorArrayIndex.getDesignator());
+        report_usage_info("Found indexing of array '" + name + "'", designatorArrayIndex, name);
     }
 
     @Override
