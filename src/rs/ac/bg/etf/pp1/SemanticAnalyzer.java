@@ -658,6 +658,12 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     }
 
     @Override
+    public void visit(SwitchExprDecl switchExprDecl) {
+        super.visit(switchExprDecl);
+        switchExprDecl.struct = switchExprDecl.getSwitchExpr().struct;
+    }
+
+    @Override
     public void visit(SwitchExpression switchExpression) {
         super.visit(switchExpression);
         inSwitchBody = false;
