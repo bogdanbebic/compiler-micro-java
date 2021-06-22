@@ -381,17 +381,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(AllocationFactor allocationFactor) {
         super.visit(allocationFactor);
         Struct type = allocationFactor.getType().struct;
-        if (allocationFactor.getOptionalArrayIndexing() instanceof ArrayIndex) {
-            allocationFactor.struct = new Struct(Struct.Array, type);
-        }
-        else if (allocationFactor.getOptionalArrayIndexing() instanceof NoArrayIndexing) {
-            allocationFactor.struct = type;
-        }
-        else {
-            // should never happen
-            allocationFactor.struct = MJSymbolTable.noType;
-            report_error("Invalid allocation factor", allocationFactor);
-        }
+        allocationFactor.struct = new Struct(Struct.Array, type);
     }
 
     @Override

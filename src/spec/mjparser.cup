@@ -90,7 +90,7 @@ nonterminal CaseLabelList, CaseLabel, Label;
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
 nonterminal ActualParamsStart, ActualParamsEnd;
-nonterminal OptionalArrayIndexing, ArrayIndexing;
+nonterminal ArrayIndexing;
 nonterminal AssignOp, RelOp, AddOp, MulOp;
 
 precedence left ELSE;
@@ -275,7 +275,7 @@ Term ::= (SingleFactor) Factor
 
 Factor ::= (DesignatorFactor)  Designator OptionalFunctionCall
          | (ConstantFactor)    Constant
-         | (AllocationFactor)  NEW Type OptionalArrayIndexing
+         | (AllocationFactor)  NEW Type ArrayIndexing
          | (ParenthesesFactor) LPAREN Expr RPAREN
          ;
 
@@ -300,10 +300,6 @@ ActualParams ::= (NoActualParams)   /* epsilon */
 ActualParamsList ::= (FirstActualParamDecl) Expr
                    | (ActualParamsListDecl) ActualParamsList COMMA Expr
                    ;
-
-OptionalArrayIndexing ::= (NoArrayIndexing) /* epsilon */
-                        | (ArrayIndex)      ArrayIndexing
-                        ;
 
 ArrayIndexing ::= (ArrayIndexing) LBRACKET Expr RBRACKET
                 ;
