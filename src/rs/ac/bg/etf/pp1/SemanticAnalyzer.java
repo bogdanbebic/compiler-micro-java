@@ -24,6 +24,42 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private final List<Struct> switchYieldTypes = new ArrayList<>();
     private final List<Struct> functionCallParamTypes = new ArrayList<>();
 
+    @Override
+    public void visit(DesignatorIncStmt designatorIncStmt) {
+        super.visit(designatorIncStmt);
+        Designator designator = designatorIncStmt.getDesignator();
+        if (!MJSymbolTable.isAssignable(designator)) {
+            report_error("Increment statement variable must be assignable", designatorIncStmt);
+        }
+
+        Struct designatorType = designator.obj.getType();
+        if (designator instanceof DesignatorArrayIndex) {
+            designatorType = designator.obj.getType().getElemType();
+        }
+
+        if (!MJSymbolTable.intType.equals(designatorType)) {
+            report_error("Increment variable must be of type int", designatorIncStmt);
+        }
+    }
+
+    @Override
+    public void visit(DesignatorDecStmt designatorDecStmt) {
+        super.visit(designatorDecStmt);
+        Designator designator = designatorDecStmt.getDesignator();
+        if (!MJSymbolTable.isAssignable(designator)) {
+            report_error("Decrement statement variable must be assignable", designatorDecStmt);
+        }
+
+        Struct designatorType = designator.obj.getType();
+        if (designator instanceof DesignatorArrayIndex) {
+            designatorType = designator.obj.getType().getElemType();
+        }
+
+        if (!MJSymbolTable.intType.equals(designatorType)) {
+            report_error("Decrement variable must be of type int", designatorDecStmt);
+        }
+    }
+
     private void checkFunctionParamTypes(String functionName, SyntaxNode syntaxNode) {
         Obj funcObj = MJSymbolTable.find(functionName);
         if (MJSymbolTable.noObj.equals(funcObj) || funcObj.getKind() != Obj.Meth) {
@@ -351,9 +387,13 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(DesignatorArrayIndex designatorArrayIndex) {
         super.visit(designatorArrayIndex);
-        designatorArrayIndex.obj = designatorArrayIndex.getDesignator().obj;
+        Designator designator = designatorArrayIndex.getDesignator();
+        designatorArrayIndex.obj = designator.obj;
+        if (designator.obj.getType().getKind() != Struct.Array) {
+            report_error("Indexing must be done on type array", designatorArrayIndex);
+        }
 
-        String name = getLastIdentifier(designatorArrayIndex.getDesignator());
+        String name = getLastIdentifier(designator);
         report_usage_info("Found indexing of array '" + name + "'", designatorArrayIndex, name);
     }
 
@@ -382,6 +422,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         super.visit(allocationFactor);
         Struct type = allocationFactor.getType().struct;
         allocationFactor.struct = new Struct(Struct.Array, type);
+        if (!MJSymbolTable.intType.equals(allocationFactor.getArrayIndexing().getExpr().struct)) {
+            report_error("Allocation size must be of type int", allocationFactor);
+        }
     }
 
     @Override
