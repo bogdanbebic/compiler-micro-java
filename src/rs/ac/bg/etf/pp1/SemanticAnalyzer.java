@@ -22,6 +22,53 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private boolean inSwitchBody = false;
     private int defaultCaseBranchesCount = 0;
     private final List<Struct> switchYieldTypes = new ArrayList<>();
+    private final List<Struct> functionCallParamTypes = new ArrayList<>();
+
+    private void checkFunctionParamTypes(String functionName, SyntaxNode syntaxNode) {
+        Obj funcObj = MJSymbolTable.find(functionName);
+        if (MJSymbolTable.noObj.equals(funcObj) || funcObj.getKind() != Obj.Meth) {
+            return;
+        }
+
+        if (funcObj.getLevel() != functionCallParamTypes.size()) {
+            return;
+        }
+
+        funcObj.getLocalSymbols().stream()
+                .filter(localSymbol -> localSymbol.getFpPos() > 0)
+                .filter(funcParam -> !funcParam.getType()
+                        .equals(functionCallParamTypes.get(funcParam.getFpPos() - 1)))
+                .forEach(funcParam -> {
+                    MJDumpSymbolTableVisitor visitor = new MJDumpSymbolTableVisitor();
+                    funcParam.accept(visitor);
+                    String expectedType = visitor.getOutput();
+                    visitor = new MJDumpSymbolTableVisitor();
+                    functionCallParamTypes.get(funcParam.getFpPos() - 1).accept(visitor);
+                    String foundType = visitor.getOutput();
+                    String msg = String.format(
+                            "Function '%s' param %d type mismatch, expected '%s', found '%s'",
+                            functionName, funcParam.getFpPos(), expectedType, foundType);
+                    report_error(msg, syntaxNode);
+                });
+    }
+
+    @Override
+    public void visit(ActualParamsStart actualParamsStart) {
+        super.visit(actualParamsStart);
+        functionCallParamTypes.clear();
+    }
+
+    @Override
+    public void visit(FirstActualParamDecl firstActualParamDecl) {
+        super.visit(firstActualParamDecl);
+        functionCallParamTypes.add(firstActualParamDecl.getExpr().struct);
+    }
+
+    @Override
+    public void visit(ActualParamsListDecl actualParamsListDecl) {
+        super.visit(actualParamsListDecl);
+        functionCallParamTypes.add(actualParamsListDecl.getExpr().struct);
+    }
 
     private String getLastIdentifier(Designator designator) {
         if (designator instanceof SingleIdentifier) {
@@ -39,6 +86,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(FunctionCallStmt functionCallStmt) {
         super.visit(functionCallStmt);
         String name = getLastIdentifier(functionCallStmt.getDesignator());
+        checkFunctionParamTypes(name, functionCallStmt);
         report_usage_info("Found call of function '" + name + "'", functionCallStmt, name);
     }
 
@@ -229,6 +277,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
             // a call of a global function because there
             // are no class methods available
             String name = getLastIdentifier(designatorFactor.getDesignator());
+            checkFunctionParamTypes(name, designatorFactor);
             report_usage_info("Found call of function '" + name + "'", designatorFactor, name);
         }
         else {
