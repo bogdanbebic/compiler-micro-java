@@ -221,7 +221,8 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(DesignatorFactor designatorFactor) {
         super.visit(designatorFactor);
-        designatorFactor.struct = designatorFactor.getDesignator().obj.getType();
+        Designator designator = designatorFactor.getDesignator();
+        designatorFactor.struct = designator.obj.getType();
 
         if (designatorFactor.getOptionalFunctionCall() instanceof FunctionCall) {
             // NOTE: if there are no classes this is
@@ -229,6 +230,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
             // are no class methods available
             String name = getLastIdentifier(designatorFactor.getDesignator());
             report_usage_info("Found call of function '" + name + "'", designatorFactor, name);
+        }
+        else {
+            if (designator instanceof DesignatorArrayIndex) {
+                designatorFactor.struct = designator.obj.getType().getElemType();
+            }
         }
     }
 
