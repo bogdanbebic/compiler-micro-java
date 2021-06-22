@@ -45,8 +45,8 @@ scan with {:
 :}
 
 /* keywords */
-terminal PROGRAM, BREAK, CLASS, ELSE, CONST, IF, SWITCH, DO, WHILE, NEW, PRINT,
-    READ, RETURN, VOID, EXTENDS, CONTINUE, CASE, YIELD, DEFAULT;
+terminal PROGRAM, BREAK, ELSE, CONST, IF, SWITCH, DO, WHILE, NEW, PRINT,
+    READ, RETURN, VOID, CONTINUE, CASE, YIELD, DEFAULT;
 
 /* literals */
 terminal Integer NUMBER;
@@ -60,17 +60,15 @@ terminal String IDENT;
 terminal INC, DEC, PLUS, MINUS, MULT, DIV, MOD;
 terminal EQ, NE, GE, LE, GT, LT;
 terminal LAND, LOR;
-terminal ASSIGN, SEMI, COMMA, DOT;
+terminal ASSIGN, SEMI, COMMA;
 terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, COLON;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Program;
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgramHeader;
 nonterminal DeclList, MethodDeclList;
-nonterminal ConstantDecl, VariableDecl, ClassDecl;
+nonterminal ConstantDecl, VariableDecl;
 nonterminal ConstantDeclList, SingleConstantDecl, Constant;
 nonterminal VariableDeclList, SingleVariableDecl, OptionalArraySpecifier;
-nonterminal ClassDeclStart, ClassDeclEnd;
-nonterminal OptionalInheritance, OptionalMethodDeclList;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type;
 nonterminal MethodDecl;
 nonterminal MethodSignature;
@@ -91,7 +89,7 @@ nonterminal SwitchBodyStart, SwitchBodyEnd;
 nonterminal CaseLabelList, CaseLabel, Label;
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator;
 nonterminal OptionalFunctionCall, ActualParams, ActualParamsList;
-nonterminal OptionalArrayIndexing, ArrayIndexing, FieldAccess;
+nonterminal OptionalArrayIndexing, ArrayIndexing;
 nonterminal AssignOp, RelOp, AddOp, MulOp;
 
 precedence left ELSE;
@@ -105,7 +103,6 @@ ProgramHeader ::= (ProgramHeader) PROGRAM IDENT:programName
 DeclList ::= (NoDeclarations)      /* epsilon */
            | (ConstantDeclaration) DeclList ConstantDecl
            | (VariableDeclaration) DeclList VariableDecl
-           | (ClassDeclaration)    DeclList ClassDecl
            ;
 
 ConstantDecl ::= (ConstantDecl) CONST Type ConstantDeclList SEMI
@@ -137,25 +134,6 @@ SingleVariableDecl ::= (SingleVariableDecl) IDENT:variableName OptionalArraySpec
 
 OptionalArraySpecifier ::= (NoArraySpecifier) /* epsilon */
                          | (ArraySpecifier)   LBRACKET RBRACKET
-                         ;
-
-ClassDecl ::= (ClassDefinition) ClassDeclStart VarDeclList OptionalMethodDeclList ClassDeclEnd
-            | (ErroneousFields) ClassDeclStart VarDeclList error LBRACE MethodDeclList RBRACE ClassDeclEnd
-            ;
-
-ClassDeclStart ::= (ClassDeclarationStart) CLASS IDENT:className OptionalInheritance LBRACE
-                 | (ErroneousInheritance)  CLASS IDENT:className error LBRACE
-                 ;
-
-ClassDeclEnd ::= (ClassDeclEnd) RBRACE
-               ;
-
-OptionalInheritance ::= (NoInheritanceDecl) /* epsilon */
-                      | (InheritanceDecl)   EXTENDS Type
-                      ;
-
-OptionalMethodDeclList ::= (NoClassMethodDeclList) /* epsilon */
-                         | (ClassMethodDeclList)   LBRACE MethodDeclList RBRACE
                          ;
 
 Type ::= (Type) IDENT:typename
@@ -301,7 +279,6 @@ Factor ::= (DesignatorFactor)  Designator OptionalFunctionCall
          ;
 
 Designator ::= (SingleIdentifier)       IDENT:designator
-             | (DesignatorMemberAccess) Designator FieldAccess
              | (DesignatorArrayIndex)   Designator ArrayIndexing
              ;
 
@@ -323,9 +300,6 @@ OptionalArrayIndexing ::= (NoArrayIndexing) /* epsilon */
 
 ArrayIndexing ::= (ArrayIndexing) LBRACKET Expr RBRACKET
                 ;
-
-FieldAccess ::= (FieldAccess) DOT IDENT:fieldName
-              ;
 
 AssignOp ::= (AssignOp) ASSIGN
            ;

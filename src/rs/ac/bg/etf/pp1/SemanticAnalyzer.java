@@ -14,13 +14,10 @@ import java.util.Map;
 public class SemanticAnalyzer extends VisitorAdaptor {
 
     private Struct currentDeclarationType = MJSymbolTable.noType;
-    private Obj currentClass;
     private Obj currentMethod;
-    private boolean inClassDefinition = false;
     private boolean inMethodDeclaration = false;
     private boolean inMethodSignature = false;
     private final Map<String, Obj> currentMethodParams = new LinkedHashMap<>();
-    private Struct baseClass = null;
     private boolean inDoWhileBody = false;
     private boolean inSwitchBody = false;
     private int defaultCaseBranchesCount = 0;
@@ -29,9 +26,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private String getLastIdentifier(Designator designator) {
         if (designator instanceof SingleIdentifier) {
             return ((SingleIdentifier) designator).getDesignator();
-        }
-        else if (designator instanceof DesignatorMemberAccess) {
-            return ((DesignatorMemberAccess) designator).getFieldAccess().getFieldName();
         }
         else if (designator instanceof DesignatorArrayIndex) {
             return getLastIdentifier(((DesignatorArrayIndex) designator).getDesignator());
@@ -274,12 +268,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     }
 
     @Override
-    public void visit(DesignatorMemberAccess designatorMemberAccess) {
-        super.visit(designatorMemberAccess);
-        designatorMemberAccess.obj = MJSymbolTable.noObj;
-    }
-
-    @Override
     public void visit(DesignatorArrayIndex designatorArrayIndex) {
         super.visit(designatorArrayIndex);
         designatorArrayIndex.obj = designatorArrayIndex.getDesignator().obj;
@@ -341,7 +329,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         Struct currentType = obj.getType();
         Obj foundObj = MJSymbolTable.currentScope().findSymbol(identifier);
         if (foundObj == null ||
-                inClassDefinition &&
                 obj.getKind() == Obj.Meth &&
                 !currentType.equals(foundObj.getType()))
             return false;
@@ -352,69 +339,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         return obj.getKind() != Obj.Fld || !inMethodSignature;
     }
 
-    private void visitClassDecl(String className, ClassDeclStart classDeclStart) {
-        if (isDoubleDeclaration(className, 0)) {
-            report_error("Identifier '" + className + "' already defined", classDeclStart);
-            return;
-        }
-
-        inClassDefinition = true;
-        currentClass = MJSymbolTable.insert(Obj.Type, className, new Struct(Struct.Class));
-        MJSymbolTable.openScope();
-    }
-
-    @Override
-    public void visit(ClassDeclarationStart classDeclarationStart) {
-        super.visit(classDeclarationStart);
-        String className = classDeclarationStart.getClassName();
-        visitClassDecl(className, classDeclarationStart);
-    }
-
-    @Override
-    public void visit(ErroneousInheritance erroneousInheritance) {
-        super.visit(erroneousInheritance);
-        String className = erroneousInheritance.getClassName();
-        visitClassDecl(className, erroneousInheritance);
-    }
-
-    @Override
-    public void visit(InheritanceDecl inheritanceDecl) {
-        super.visit(inheritanceDecl);
-        Type type = inheritanceDecl.getType();
-        String typename = type.getTypename();
-        if (type.struct.getKind() != Struct.Class) {
-            report_error("Type '" + typename + "' is not a valid base class", inheritanceDecl);
-            return;
-        }
-
-        baseClass = type.struct;
-    }
-
-    @Override
-    public void visit(NoInheritanceDecl NoInheritanceDecl) {
-        super.visit(NoInheritanceDecl);
-        baseClass = null;
-    }
-
-    @Override
-    public void visit(ClassDeclEnd classDeclEnd) {
-        super.visit(classDeclEnd);
-        if (!inClassDefinition)
-            return;
-
-        MJSymbolTable.chainLocalSymbols(currentClass.getType());
-        MJSymbolTable.closeScope();
-        currentClass.getType().setElementType(baseClass);
-        currentClass = null;
-        inClassDefinition = false;
-    }
-
     @Override
     public void visit(MethodSignatureWithoutParams methodSignatureWithoutParams) {
         super.visit(methodSignatureWithoutParams);
         String methodName = methodSignatureWithoutParams.getMethodName();
-        int level = inClassDefinition ? 1 : 0;
-        if (isDoubleDeclaration(methodName, level)) {
+        if (isDoubleDeclaration(methodName, 0)) {
             report_error("Identifier '" + methodName + "' already defined", methodSignatureWithoutParams);
             return;
         }
@@ -528,13 +457,13 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(SingleVariableDecl singleVariableDecl) {
         super.visit(singleVariableDecl);
         String variableName = singleVariableDecl.getVariableName();
-        int level = inClassDefinition || inMethodDeclaration ? 1 : 0;
+        int level = inMethodDeclaration ? 1 : 0;
         if (isDoubleDeclaration(variableName, level)) {
             report_error("Identifier '" + variableName + "' already defined", singleVariableDecl);
             return;
         }
 
-        int kind = inClassDefinition && !inMethodDeclaration ? Obj.Fld : Obj.Var;
+        int kind = Obj.Var;
 
         Obj variableObj;
         if (singleVariableDecl.getOptionalArraySpecifier() instanceof ArraySpecifier) {

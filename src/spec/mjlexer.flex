@@ -41,7 +41,6 @@ Comment = {LineComment}
 /* keywords */
 program     { return symbol(sym.PROGRAM); }
 break       { return symbol(sym.BREAK); }
-class       { return symbol(sym.CLASS); }
 else        { return symbol(sym.ELSE); }
 const       { return symbol(sym.CONST); }
 if          { return symbol(sym.IF); }
@@ -53,7 +52,6 @@ print       { return symbol(sym.PRINT); }
 read        { return symbol(sym.READ); }
 return      { return symbol(sym.RETURN); }
 void        { return symbol(sym.VOID); }
-extends     { return symbol(sym.EXTENDS); }
 continue    { return symbol(sym.CONTINUE); }
 case        { return symbol(sym.CASE); }
 yield       { return symbol(sym.YIELD); }
@@ -86,7 +84,6 @@ default     { return symbol(sym.DEFAULT); }
 "="     { return symbol(sym.ASSIGN); }
 ";"     { return symbol(sym.SEMI); }
 ","     { return symbol(sym.COMMA); }
-"."     { return symbol(sym.DOT); }
 "("     { return symbol(sym.LPAREN); }
 ")"     { return symbol(sym.RPAREN); }
 "["     { return symbol(sym.LBRACKET); }
