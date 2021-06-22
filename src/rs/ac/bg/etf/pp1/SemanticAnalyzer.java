@@ -23,6 +23,40 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private final List<Struct> functionCallParamTypes = new ArrayList<>();
 
     @Override
+    public void visit(AssignmentStmt assignmentStmt) {
+        super.visit(assignmentStmt);
+        Designator designator = assignmentStmt.getDesignator();
+        Expr expr = assignmentStmt.getExpr();
+        if (!MJSymbolTable.isAssignable(designator)) {
+            report_error("Assignment variable must be assignable", assignmentStmt);
+        }
+
+        Struct designatorType = designator.obj.getType();
+        if (designator instanceof DesignatorArrayIndex) {
+            designatorType = designator.obj.getType().getElemType();
+        }
+
+        if (MJSymbolTable.noType.equals(designatorType) ||
+                MJSymbolTable.noType.equals(expr.struct)) {
+            // do not propagate errors
+            return;
+        }
+
+        if (!designatorType.equals(expr.struct)) {
+            MJDumpSymbolTableVisitor visitor = new MJDumpSymbolTableVisitor();
+            designatorType.accept(visitor);
+            String expectedType = visitor.getOutput();
+            visitor = new MJDumpSymbolTableVisitor();
+            expr.struct.accept(visitor);
+            String foundType = visitor.getOutput();
+            String msg = String.format(
+                    "Type mismatch in assignment, expected '%s', found '%s'",
+                    expectedType, foundType);
+            report_error(msg, assignmentStmt);
+        }
+    }
+
+    @Override
     public void visit(ReturnStmt returnStmt) {
         super.visit(returnStmt);
         if (!inMethodDeclaration) {
