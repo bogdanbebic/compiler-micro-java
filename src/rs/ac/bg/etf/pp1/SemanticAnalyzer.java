@@ -53,6 +53,32 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     }
 
     @Override
+    public void visit(PrintStmt printStmt) {
+        super.visit(printStmt);
+        if (MJSymbolTable.isNotBuiltinType(printStmt.getExpr().struct)) {
+            report_error("print argument must be of a builtin type", printStmt);
+        }
+    }
+
+    @Override
+    public void visit(ReadStmt readStmt) {
+        super.visit(readStmt);
+        Designator designator = readStmt.getDesignator();
+        Struct designatorType = designator.obj.getType();
+        if (designator instanceof DesignatorArrayIndex) {
+            designatorType = designator.obj.getType().getElemType();
+        }
+
+        if (MJSymbolTable.isNotBuiltinType(designatorType)) {
+            report_error("read argument must be of builtin type", readStmt);
+        }
+
+        if (!MJSymbolTable.isAssignable(designator)) {
+            report_error("read argument must be assignable", readStmt);
+        }
+    }
+
+    @Override
     public void visit(ActualParamsStart actualParamsStart) {
         super.visit(actualParamsStart);
         functionCallParamTypes.clear();
