@@ -23,6 +23,32 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private final List<Struct> functionCallParamTypes = new ArrayList<>();
 
     @Override
+    public void visit(ReturnStmt returnStmt) {
+        super.visit(returnStmt);
+        if (!inMethodDeclaration) {
+            report_error("return statement must be inside of a function", returnStmt);
+            return;
+        }
+
+        if (returnStmt.getOptionalExpr() instanceof Expression) {
+            Expr expr = ((Expression) returnStmt.getOptionalExpr()).getExpr();
+            if (!MJSymbolTable.noType.equals(expr.struct) &&
+                    !expr.struct.equals(currentMethod.getType())) {
+                report_error(
+                        "Type mismatch between return type and expression in return",
+                        returnStmt);
+            }
+        }
+        else if (returnStmt.getOptionalExpr() instanceof NoExpression) {
+            if (!MJSymbolTable.noType.equals(currentMethod.getType())) {
+                report_error(
+                        "empty return can only be placed in void functions",
+                        returnStmt);
+            }
+        }
+    }
+
+    @Override
     public void visit(DesignatorIncStmt designatorIncStmt) {
         super.visit(designatorIncStmt);
         Designator designator = designatorIncStmt.getDesignator();
