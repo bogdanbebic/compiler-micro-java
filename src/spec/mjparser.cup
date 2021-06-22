@@ -261,7 +261,7 @@ CaseLabelList ::= (NoCaseLabels)  /* epsilon */
 CaseLabel ::= (CaseLabel) Label StatementList
             ;
 
-Label ::= (NonDefaultCaseLabel) CASE NUMBER COLON
+Label ::= (NonDefaultCaseLabel) CASE NUMBER:value COLON
         | (DefaultCaseLabel)    DEFAULT COLON
         ;
 

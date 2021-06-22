@@ -6,10 +6,7 @@ import rs.ac.bg.etf.pp1.test.CompilerError;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SemanticAnalyzer extends VisitorAdaptor {
 
@@ -21,6 +18,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private boolean inDoWhileBody = false;
     private boolean inSwitchBody = false;
     private int defaultCaseBranchesCount = 0;
+    private final Set<Integer> switchCaseLabelValues = new HashSet<>();
     private final List<Struct> switchYieldTypes = new ArrayList<>();
     private final List<Struct> functionCallParamTypes = new ArrayList<>();
 
@@ -630,6 +628,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         inSwitchBody = true;
         defaultCaseBranchesCount = 0;
         switchYieldTypes.clear();
+        switchCaseLabelValues.clear();
     }
 
     @Override
@@ -644,6 +643,12 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
         if (switchYieldTypes.isEmpty()) {
             report_error("Missing yield statement in switch", switchExpression);
+            switchExpression.struct = MJSymbolTable.noType;
+            return;
+        }
+
+        if (!MJSymbolTable.intType.equals(switchExpression.getExpr().struct)) {
+            report_error("Switch variable must be of type int", switchExpression);
             switchExpression.struct = MJSymbolTable.noType;
             return;
         }
@@ -665,6 +670,15 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
         switchExpression.struct = MJSymbolTable.noType;
         report_error("Different types in yield statements in switch", switchExpression);
+    }
+
+    @Override
+    public void visit(NonDefaultCaseLabel nonDefaultCaseLabel) {
+        super.visit(nonDefaultCaseLabel);
+        Integer caseLabelValue = nonDefaultCaseLabel.getValue();
+        if (!switchCaseLabelValues.add(caseLabelValue)) {
+            report_error("Duplicate case label with value " + caseLabelValue, nonDefaultCaseLabel);
+        }
     }
 
     @Override
