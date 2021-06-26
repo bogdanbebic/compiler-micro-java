@@ -7,6 +7,7 @@ import rs.ac.bg.etf.pp1.ast.Program;
 import rs.ac.bg.etf.pp1.test.Compiler;
 import rs.ac.bg.etf.pp1.test.CompilerError;
 import rs.ac.bg.etf.pp1.util.Log4JUtils;
+import rs.etf.pp1.mj.runtime.Code;
 
 import java.io.BufferedReader;
 import java.nio.file.Files;
@@ -58,7 +59,12 @@ public class MJCompiler implements Compiler {
                 return errors;
             }
 
-            // TODO: code generation
+            CodeGenerator codeGenerator = new CodeGenerator();
+            Code.dataSize = semanticAnalyzer.getVariableCount();
+            program.traverseBottomUp(codeGenerator);
+            Code.mainPc = codeGenerator.getMainPcOffset();
+            Code.write(Files.newOutputStream(Paths.get(outputFilePath)));
+
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
