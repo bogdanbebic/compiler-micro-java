@@ -22,6 +22,12 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private final List<Struct> switchYieldTypes = new ArrayList<>();
     private final List<Struct> functionCallParamTypes = new ArrayList<>();
 
+    private int variableCount;
+
+    public int getVariableCount() {
+        return variableCount;
+    }
+
     @Override
     public void visit(AssignmentStmt assignmentStmt) {
         super.visit(assignmentStmt);
@@ -776,6 +782,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(Program program) {
         super.visit(program);
+        variableCount = MJSymbolTable.currentScope().getnVars();
         MJSymbolTable.chainLocalSymbols(program.getProgramHeader().obj);
         Obj mainObj = MJSymbolTable.find("main");
         MJSymbolTable.closeScope();
