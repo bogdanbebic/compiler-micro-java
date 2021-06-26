@@ -23,7 +23,7 @@ public class MJCompiler implements Compiler {
     }
 
     private boolean hasCompileTimeErrors() {
-        return this.errors.isEmpty();
+        return !this.errors.isEmpty();
     }
 
     private static final Logger log;
