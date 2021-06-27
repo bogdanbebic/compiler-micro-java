@@ -135,4 +135,69 @@ public class CodeGenerator extends VisitorAdaptor {
         }
     }
 
+    @Override
+    public void visit(ReturnStmt returnStmt) {
+        super.visit(returnStmt);
+        Code.put(Code.exit);
+        Code.put(Code.return_);
+    }
+
+    @Override
+    public void visit(AddOpExpression addOpExpression) {
+        super.visit(addOpExpression);
+        AddOp addOp = addOpExpression.getAddOp();
+        if (addOp instanceof PlusOp)
+            Code.put(Code.add);
+        else if (addOp instanceof MinusOp)
+            Code.put(Code.sub);
+    }
+
+    @Override
+    public void visit(NegativeTerm negativeTerm) {
+        super.visit(negativeTerm);
+        Code.put(Code.neg);
+    }
+
+    @Override
+    public void visit(MulOpTerm mulOpTerm) {
+        super.visit(mulOpTerm);
+        MulOp mulOp = mulOpTerm.getMulOp();
+        if (mulOp instanceof MultiplyOp)
+            Code.put(Code.mul);
+        else if (mulOp instanceof DivideOp)
+            Code.put(Code.div);
+        else if (mulOp instanceof ModuloOp)
+            Code.put(Code.rem);
+    }
+
+    @Override
+    public void visit(ConstantFactor constantFactor) {
+        super.visit(constantFactor);
+        Constant constant = constantFactor.getConstant();
+        int value = 0;
+        if (constant instanceof NumberConstant) {
+            value = ((NumberConstant) constant).getValue();
+        }
+        else if (constant instanceof CharConstant) {
+            value = ((CharConstant) constant).getValue();
+        }
+        else if (constant instanceof BoolConstant) {
+            value = ((BoolConstant) constant).getValue();
+        }
+
+        Code.loadConst(value);
+    }
+
+    @Override
+    public void visit(AllocationFactor allocationFactor) {
+        super.visit(allocationFactor);
+        Code.put(Code.newarray);
+        if (MJSymbolTable.intType.equals(allocationFactor.getType().struct)) {
+            Code.put(1);
+        }
+        else {
+            Code.put(0);
+        }
+    }
+
 }
