@@ -2,6 +2,7 @@ package rs.ac.bg.etf.pp1;
 
 import rs.ac.bg.etf.pp1.ast.*;
 import rs.etf.pp1.mj.runtime.Code;
+import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class CodeGenerator extends VisitorAdaptor {
@@ -107,8 +108,30 @@ public class CodeGenerator extends VisitorAdaptor {
     @Override
     public void visit(MethodSignatureWithoutParams methodSignatureWithoutParams) {
         super.visit(methodSignatureWithoutParams);
-        if ("main".equals(methodSignatureWithoutParams.getMethodName())) {
+        String methodName = methodSignatureWithoutParams.getMethodName();
+
+        if ("main".equals(methodName)) {
             mainPcOffset = Code.pc;
+        }
+
+        Obj methodObj = methodSignatureWithoutParams.obj;
+        Code.put(Code.enter);
+        Code.put(methodObj.getLevel());
+        Code.put(methodObj.getLocalSymbols().size());
+    }
+
+    @Override
+    public void visit(MethodDecl methodDecl) {
+        super.visit(methodDecl);
+        ReturnType returnType = methodDecl.getMethodSignature().getMethodSignatureWithoutParams().getReturnType();
+        if (returnType instanceof VoidReturnType) {
+            Code.put(Code.exit);
+            Code.put(Code.return_);
+        }
+        else {
+            // traps method end without return
+            Code.put(Code.trap);
+            Code.put(0);
         }
     }
 

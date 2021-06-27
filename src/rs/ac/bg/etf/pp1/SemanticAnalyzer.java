@@ -535,6 +535,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         }
 
         currentMethod = MJSymbolTable.insert(Obj.Meth, methodName, returnTypeStruct);
+        methodSignatureWithoutParams.obj = currentMethod;
         MJSymbolTable.openScope();
     }
 
