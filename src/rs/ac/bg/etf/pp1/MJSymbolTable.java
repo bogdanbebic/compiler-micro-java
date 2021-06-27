@@ -25,6 +25,6 @@ public class MJSymbolTable extends Tab {
             return isAssignable(((DesignatorArrayIndex) designator).getDesignator());
         }
 
-        return designator.obj.getKind() == Obj.Var;
+        return designator.obj.getKind() == Obj.Var || designator.obj.getKind() == Obj.Elem;
     }
 }

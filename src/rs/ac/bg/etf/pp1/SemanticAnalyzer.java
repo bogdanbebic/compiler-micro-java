@@ -38,9 +38,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         }
 
         Struct designatorType = designator.obj.getType();
-        if (designator instanceof DesignatorArrayIndex) {
-            designatorType = designator.obj.getType().getElemType();
-        }
 
         if (MJSymbolTable.noType.equals(designatorType) ||
                 MJSymbolTable.noType.equals(expr.struct)) {
@@ -97,9 +94,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         }
 
         Struct designatorType = designator.obj.getType();
-        if (designator instanceof DesignatorArrayIndex) {
-            designatorType = designator.obj.getType().getElemType();
-        }
 
         if (!MJSymbolTable.intType.equals(designatorType)) {
             report_error("Increment variable must be of type int", designatorIncStmt);
@@ -115,9 +109,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         }
 
         Struct designatorType = designator.obj.getType();
-        if (designator instanceof DesignatorArrayIndex) {
-            designatorType = designator.obj.getType().getElemType();
-        }
 
         if (!MJSymbolTable.intType.equals(designatorType)) {
             report_error("Decrement variable must be of type int", designatorDecStmt);
@@ -165,9 +156,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         super.visit(readStmt);
         Designator designator = readStmt.getDesignator();
         Struct designatorType = designator.obj.getType();
-        if (designator instanceof DesignatorArrayIndex) {
-            designatorType = designator.obj.getType().getElemType();
-        }
 
         if (MJSymbolTable.isNotBuiltinType(designatorType)) {
             report_error("read argument must be of builtin type", readStmt);
@@ -406,11 +394,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
             checkFunctionParamTypes(name, designatorFactor);
             report_usage_info("Found call of function '" + name + "'", designatorFactor, name);
         }
-        else {
-            if (designator instanceof DesignatorArrayIndex) {
-                designatorFactor.struct = designator.obj.getType().getElemType();
-            }
-        }
     }
 
     @Override
@@ -418,12 +401,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
         super.visit(singleIdentifier);
         String identifier = singleIdentifier.getDesignator();
         Obj obj = MJSymbolTable.find(identifier);
+        singleIdentifier.obj = obj;
         if (MJSymbolTable.noObj.equals(obj)) {
             report_error("Undeclared identifier '" + identifier + "'", singleIdentifier);
             return;
         }
-
-        singleIdentifier.obj = obj;
 
         // usage
         String name = obj.getName();
@@ -452,7 +434,8 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(DesignatorArrayIndex designatorArrayIndex) {
         super.visit(designatorArrayIndex);
         Designator designator = designatorArrayIndex.getDesignator();
-        designatorArrayIndex.obj = designator.obj;
+        Struct elemType = designator.obj.getType().getElemType();
+        designatorArrayIndex.obj = new Obj(Obj.Elem, designator.obj.getName(), elemType);
         if (designator.obj.getType().getKind() != Struct.Array) {
             report_error("Indexing must be done on type array", designatorArrayIndex);
         }
