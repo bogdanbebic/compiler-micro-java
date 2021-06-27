@@ -104,4 +104,12 @@ public class CodeGenerator extends VisitorAdaptor {
         }
     }
 
+    @Override
+    public void visit(MethodSignatureWithoutParams methodSignatureWithoutParams) {
+        super.visit(methodSignatureWithoutParams);
+        if ("main".equals(methodSignatureWithoutParams.getMethodName())) {
+            mainPcOffset = Code.pc;
+        }
+    }
+
 }
