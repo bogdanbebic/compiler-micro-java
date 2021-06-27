@@ -232,4 +232,18 @@ public class CodeGenerator extends VisitorAdaptor {
         }
     }
 
+    @Override
+    public void visit(SingleIdentifier singleIdentifier) {
+        super.visit(singleIdentifier);
+        if (singleIdentifier.getParent() instanceof DesignatorArrayIndex) {
+            Code.load(singleIdentifier.obj);
+        }
+    }
+
+    @Override
+    public void visit(DesignatorArrayIndex designatorArrayIndex) {
+        super.visit(designatorArrayIndex);
+        Obj designatorObj = designatorArrayIndex.getDesignator().obj;
+        designatorArrayIndex.obj = new Obj(Obj.Elem, designatorObj.getName(), designatorObj.getType().getElemType());
+    }
 }
