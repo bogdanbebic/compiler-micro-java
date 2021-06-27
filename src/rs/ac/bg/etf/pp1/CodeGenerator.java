@@ -1,8 +1,8 @@
 package rs.ac.bg.etf.pp1;
 
-import rs.ac.bg.etf.pp1.ast.ProgramHeader;
-import rs.ac.bg.etf.pp1.ast.VisitorAdaptor;
+import rs.ac.bg.etf.pp1.ast.*;
 import rs.etf.pp1.mj.runtime.Code;
+import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class CodeGenerator extends VisitorAdaptor {
 
@@ -59,6 +59,49 @@ public class CodeGenerator extends VisitorAdaptor {
     public void visit(ProgramHeader programHeader) {
         super.visit(programHeader);
         generateCodeBuiltins();
+    }
+
+    @Override
+    public void visit(ReadStmt readStmt) {
+        super.visit(readStmt);
+        Struct designatorType = readStmt.getDesignator().obj.getType();
+        if (readStmt.getDesignator() instanceof DesignatorArrayIndex) {
+            designatorType = designatorType.getElemType();
+        }
+
+        if (MJSymbolTable.intType.equals(designatorType)) {
+            // Signature: void read(int x);
+            Code.put(Code.read);
+        }
+        else if (MJSymbolTable.charType.equals(designatorType)) {
+            // Signature: void read(char x);
+            Code.put(Code.bread);
+        }
+
+        Code.put(Code.store_n);
+    }
+
+    @Override
+    public void visit(PrintStmt printStmt) {
+        super.visit(printStmt);
+        // Initialization constant specifies DEFAULT_WIDTH
+        int width = 5;
+        if (printStmt.getOptionalWidthSpecifier() instanceof WidthSpecifier) {
+            WidthSpecifier widthSpecifier = (WidthSpecifier) printStmt.getOptionalWidthSpecifier();
+            width = widthSpecifier.getWidth();
+        }
+
+        Code.loadConst(width);
+
+        Struct exprType = printStmt.getExpr().struct;
+        if (MJSymbolTable.intType.equals(exprType)) {
+            // Signature: void print(int x, int width = DEFAULT_WIDTH);
+            Code.put(Code.print);
+        }
+        else if (MJSymbolTable.charType.equals(exprType)) {
+            // Signature: void print(char x, int width = DEFAULT_WIDTH);
+            Code.put(Code.bprint);
+        }
     }
 
 }
