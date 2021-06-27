@@ -47,3 +47,6 @@ src/rs/ac/bg/etf/pp1/ast/*
 src/rs/ac/bg/etf/pp1/Lexer.java
 src/rs/ac/bg/etf/pp1/Parser.java
 src/rs/ac/bg/etf/pp1/sym.java
+
+# Generated files by MJ Compiler in test folder
+test/*.obj
