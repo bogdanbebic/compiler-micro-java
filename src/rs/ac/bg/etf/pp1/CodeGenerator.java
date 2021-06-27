@@ -65,10 +65,8 @@ public class CodeGenerator extends VisitorAdaptor {
     @Override
     public void visit(ReadStmt readStmt) {
         super.visit(readStmt);
-        Struct designatorType = readStmt.getDesignator().obj.getType();
-        if (readStmt.getDesignator() instanceof DesignatorArrayIndex) {
-            designatorType = designatorType.getElemType();
-        }
+        Designator designator = readStmt.getDesignator();
+        Struct designatorType = designator.obj.getType();
 
         if (MJSymbolTable.intType.equals(designatorType)) {
             // Signature: void read(int x);
@@ -79,7 +77,7 @@ public class CodeGenerator extends VisitorAdaptor {
             Code.put(Code.bread);
         }
 
-        Code.put(Code.store_n);
+        Code.store(designator.obj);
     }
 
     @Override
