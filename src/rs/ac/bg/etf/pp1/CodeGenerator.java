@@ -139,22 +139,31 @@ public class CodeGenerator extends VisitorAdaptor {
         Code.store(assignmentStmt.getDesignator().obj);
     }
 
+    private void generateCodePostIncDec(boolean isIncrement, Designator designator) {
+        if (designator instanceof DesignatorArrayIndex) {
+            DesignatorArrayIndex designatorArrayIndex = (DesignatorArrayIndex) designator;
+            designatorArrayIndex.traverseBottomUp(new CodeGenerator());
+        }
+
+        Code.load(designator.obj);
+        Code.loadConst(1);
+        if (isIncrement)
+            Code.put(Code.add);
+        else
+            Code.put(Code.sub);
+        Code.store(designator.obj);
+    }
+
     @Override
     public void visit(DesignatorIncStmt designatorIncStmt) {
         super.visit(designatorIncStmt);
-        Code.load(designatorIncStmt.getDesignator().obj);
-        Code.loadConst(1);
-        Code.put(Code.add);
-        Code.store(designatorIncStmt.getDesignator().obj);
+        generateCodePostIncDec(true, designatorIncStmt.getDesignator());
     }
 
     @Override
     public void visit(DesignatorDecStmt designatorDecStmt) {
         super.visit(designatorDecStmt);
-        Code.load(designatorDecStmt.getDesignator().obj);
-        Code.loadConst(1);
-        Code.put(Code.sub);
-        Code.store(designatorDecStmt.getDesignator().obj);
+        generateCodePostIncDec(false, designatorDecStmt.getDesignator());
     }
 
     @Override
@@ -238,10 +247,4 @@ public class CodeGenerator extends VisitorAdaptor {
         }
     }
 
-    @Override
-    public void visit(DesignatorArrayIndex designatorArrayIndex) {
-        super.visit(designatorArrayIndex);
-        Obj designatorObj = designatorArrayIndex.getDesignator().obj;
-        designatorArrayIndex.obj = new Obj(Obj.Elem, designatorObj.getName(), designatorObj.getType().getElemType());
-    }
 }
