@@ -203,7 +203,7 @@ OptionalElseBranch ::= (NoElseBranch) /* epsilon */
                      ;
 
 OptionalWidthSpecifier ::= (NoWidthSpecifier) /* epsilon */
-                         | (WidthSpecifier)   COMMA NUMBER
+                         | (WidthSpecifier)   COMMA NUMBER:width
                          ;
 
 DesignatorStatement ::= (AssignmentStmt)    Designator AssignOp Expr
