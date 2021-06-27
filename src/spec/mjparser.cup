@@ -72,7 +72,7 @@ nonterminal VariableDeclList, SingleVariableDecl, OptionalArraySpecifier;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type;
 nonterminal MethodDecl;
 nonterminal MethodSignature;
-nonterminal MethodSignatureWithoutParams;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj MethodSignatureWithoutParams;
 nonterminal MethodParams;
 nonterminal ReturnType, FormalParams, VarDeclList, StatementList;
 nonterminal FormalParamsList, SingleFormalParamDecl;
