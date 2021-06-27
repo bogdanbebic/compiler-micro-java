@@ -171,6 +171,14 @@ public class CodeGenerator extends VisitorAdaptor {
     }
 
     @Override
+    public void visit(DesignatorFactor designatorFactor) {
+        super.visit(designatorFactor);
+        if (designatorFactor.getOptionalFunctionCall() instanceof NoFunctionCall) {
+            Code.load(designatorFactor.getDesignator().obj);
+        }
+    }
+
+    @Override
     public void visit(ConstantFactor constantFactor) {
         super.visit(constantFactor);
         Constant constant = constantFactor.getConstant();
