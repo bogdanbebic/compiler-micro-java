@@ -612,7 +612,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
                     report_error("Actual constant is not of type char", constant);
                     return;
                 }
-                constantValue = Character.getNumericValue(((CharConstant) constant).getValue());
+                constantValue = ((CharConstant) constant).getValue();
                 break;
             case Struct.Bool:
                 if (!(constant instanceof BoolConstant)) {
