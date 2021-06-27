@@ -84,8 +84,9 @@ public class CodeGenerator extends VisitorAdaptor {
     @Override
     public void visit(PrintStmt printStmt) {
         super.visit(printStmt);
+        Struct exprType = printStmt.getExpr().struct;
         // Initialization constant specifies DEFAULT_WIDTH
-        int width = 5;
+        int width = MJSymbolTable.charType.equals(exprType) ? 1 : 5;
         if (printStmt.getOptionalWidthSpecifier() instanceof WidthSpecifier) {
             WidthSpecifier widthSpecifier = (WidthSpecifier) printStmt.getOptionalWidthSpecifier();
             width = widthSpecifier.getWidth();
@@ -93,7 +94,6 @@ public class CodeGenerator extends VisitorAdaptor {
 
         Code.loadConst(width);
 
-        Struct exprType = printStmt.getExpr().struct;
         if (MJSymbolTable.intType.equals(exprType)) {
             // Signature: void print(int x, int width = DEFAULT_WIDTH);
             Code.put(Code.print);
