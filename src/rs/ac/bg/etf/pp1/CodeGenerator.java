@@ -15,6 +15,9 @@ public class CodeGenerator extends VisitorAdaptor {
     private final Stack<List<Integer>> breakAddresses = new Stack<>();
     private final Stack<List<Integer>> negativeJumps = new Stack<>();
     private final Stack<List<Integer>> positiveJumps = new Stack<>();
+    private final Stack<Boolean> isFirstCaseLabel = new Stack<>();
+    private final Stack<Integer> caseAddresses = new Stack<>();
+    private final Stack<List<Integer>> yieldAddresses = new Stack<>();
 
     public int getMainPcOffset() {
         return methodOffsets.get("main");
@@ -198,6 +201,60 @@ public class CodeGenerator extends VisitorAdaptor {
         super.visit(returnStmt);
         Code.put(Code.exit);
         Code.put(Code.return_);
+    }
+
+    @Override
+    public void visit(YieldStmt yieldStmt) {
+        super.visit(yieldStmt);
+        this.yieldAddresses.peek().add(Code.pc + 1);
+        Code.putJump(0);
+    }
+
+    @Override
+    public void visit(SwitchBodyStart switchBodyStart) {
+        super.visit(switchBodyStart);
+        this.isFirstCaseLabel.push(true);
+        this.yieldAddresses.push(new ArrayList<>());
+    }
+
+    @Override
+    public void visit(SwitchBodyEnd switchBodyEnd) {
+        super.visit(switchBodyEnd);
+        this.isFirstCaseLabel.pop();
+
+        // back patch yield statements
+        this.yieldAddresses.pop().forEach(Code::fixup);
+    }
+
+    @Override
+    public void visit(NonDefaultCaseLabel nonDefaultCaseLabel) {
+        super.visit(nonDefaultCaseLabel);
+        // back patch previous case label jump if it exists
+        if (!this.isFirstCaseLabel.pop())
+            Code.fixup(this.caseAddresses.pop());
+
+        this.isFirstCaseLabel.push(false);
+
+        // check if switch expression is matched to this case
+        Code.put(Code.dup);
+        Code.loadConst(nonDefaultCaseLabel.getValue());
+        this.caseAddresses.push(Code.pc + 1);
+        Code.putFalseJump(Code.eq, 0);
+        Code.put(Code.pop);
+    }
+
+    @Override
+    public void visit(DefaultCaseLabel defaultCaseLabel) {
+        super.visit(defaultCaseLabel);
+        // back patch previous case label jump if it exists
+        if (!this.isFirstCaseLabel.pop())
+            Code.fixup(this.caseAddresses.pop());
+
+        // set to true to prevent back patching attempt
+        // in next case when no jump occurs in default
+        this.isFirstCaseLabel.push(true);
+
+        Code.put(Code.pop);
     }
 
     @Override
