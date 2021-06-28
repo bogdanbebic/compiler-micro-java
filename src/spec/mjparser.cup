@@ -80,8 +80,11 @@ nonterminal Statement;
 nonterminal DesignatorStatement;
 nonterminal DoWhileStatement, DoWhileBodyStart, DoWhileBodyEnd;
 nonterminal IfCondition, OptionalElseBranch;
+nonterminal ThenBranchEnd;
+nonterminal IfConditionStart, IfConditionEnd;
 nonterminal OptionalWidthSpecifier;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Condition, ConditionTerm, ConditionFactor;
+nonterminal LogicalOr;
 nonterminal OptionalExpr;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, ExprTermList, SwitchExpr;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct ExpressionTerm, Term, Factor;
@@ -182,7 +185,7 @@ StatementList ::= (NoStatements) /* epsilon */
                 ;
 
 Statement ::= (DesignatorStmt) DesignatorStatement SEMI
-            | (IfElseStmt)     IF IfCondition Statement OptionalElseBranch
+            | (IfElseStmt)     IF IfCondition Statement ThenBranchEnd OptionalElseBranch
             | (DoWhileStmt)    DoWhileStatement SEMI
             | (YieldStmt)      YIELD Expr SEMI
             | (BreakStmt)      BREAK SEMI
@@ -194,9 +197,18 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMI
             | (ErroneousStmt)  error SEMI
             ;
 
-IfCondition ::= (ValidIfCondition)     LPAREN Condition RPAREN
+IfCondition ::= (ValidIfCondition)     IfConditionStart Condition IfConditionEnd
               | (ErroneousIfCondition) LPAREN error RPAREN
               ;
+
+IfConditionStart ::= (IfConditionStart) LPAREN
+                   ;
+
+IfConditionEnd ::= (IfConditionEnd) RPAREN
+                 ;
+
+ThenBranchEnd ::= (ThenBranchEnd) /* epsilon */
+                ;
 
 OptionalElseBranch ::= (NoElseBranch) /* epsilon */
                      | (ElseBranch)   ELSE Statement
@@ -222,7 +234,10 @@ DoWhileBodyEnd ::= (DoWhileBodyEnd) WHILE
                  ;
 
 Condition ::= (FirstConditionTerm) ConditionTerm
-            | (ConditionTermList)  Condition LOR ConditionTerm
+            | (ConditionTermList)  Condition LogicalOr ConditionTerm
+            ;
+
+LogicalOr ::= (LogicalOr) LOR
             ;
 
 ConditionTerm ::= (FirstConditionFactor) ConditionFactor
