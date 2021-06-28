@@ -15,8 +15,8 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     private boolean inMethodDeclaration = false;
     private boolean inMethodSignature = false;
     private final Map<String, Obj> currentMethodParams = new LinkedHashMap<>();
-    private boolean inDoWhileBody = false;
-    private boolean inSwitchBody = false;
+    private int inDoWhileBodyCount = 0;
+    private int inSwitchBodyCount = 0;
     private int defaultCaseBranchesCount = 0;
     private final Set<Integer> switchCaseLabelValues = new HashSet<>();
     private final List<Struct> switchYieldTypes = new ArrayList<>();
@@ -649,33 +649,33 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(DoWhileBodyStart doWhileBodyStart) {
         super.visit(doWhileBodyStart);
-        inDoWhileBody = true;
+        inDoWhileBodyCount++;
     }
 
     @Override
     public void visit(DoWhileBodyEnd doWhileBodyEnd) {
         super.visit(doWhileBodyEnd);
-        inDoWhileBody = false;
+        inDoWhileBodyCount--;
     }
 
     @Override
     public void visit(BreakStmt breakStmt) {
         super.visit(breakStmt);
-        if (!inDoWhileBody)
+        if (inDoWhileBodyCount == 0)
             report_error("break statement must not be outside of do-while", breakStmt);
     }
 
     @Override
     public void visit(ContinueStmt continueStmt) {
         super.visit(continueStmt);
-        if (!inDoWhileBody)
+        if (inDoWhileBodyCount == 0)
             report_error("continue statement must not be outside of do-while", continueStmt);
     }
 
     @Override
     public void visit(SwitchBodyStart switchBodyStart) {
         super.visit(switchBodyStart);
-        inSwitchBody = true;
+        inSwitchBodyCount++;
         defaultCaseBranchesCount = 0;
         switchYieldTypes.clear();
         switchCaseLabelValues.clear();
@@ -690,7 +690,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(SwitchExpression switchExpression) {
         super.visit(switchExpression);
-        inSwitchBody = false;
+        inSwitchBodyCount--;
         if (defaultCaseBranchesCount == 0) {
             report_error("Missing default case", switchExpression);
             switchExpression.struct = MJSymbolTable.noType;
@@ -748,7 +748,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(YieldStmt yieldStmt) {
         super.visit(yieldStmt);
-        if (!inSwitchBody) {
+        if (inSwitchBodyCount == 0) {
             report_error("yield statement must not be outside of switch", yieldStmt);
             return;
         }
