@@ -5,12 +5,16 @@ import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class CodeGenerator extends VisitorAdaptor {
 
     private final Map<String, Integer> methodOffsets = new HashMap<>();
+    private final Stack<Integer> doWhileBodyStartAddresses = new Stack<>();
+    private final Stack<List<Integer>> continueAddresses = new Stack<>();
+    private final Stack<List<Integer>> breakAddresses = new Stack<>();
+    private final Stack<List<Integer>> negativeJumps = new Stack<>();
+    private final Stack<List<Integer>> positiveJumps = new Stack<>();
 
     public int getMainPcOffset() {
         return methodOffsets.get("main");
@@ -197,6 +201,84 @@ public class CodeGenerator extends VisitorAdaptor {
     }
 
     @Override
+    public void visit(ElseBranch elseBranch) {
+        super.visit(elseBranch);
+        // back patch skip else branch jump
+        this.positiveJumps.pop().forEach(Code::fixup);
+    }
+
+    @Override
+    public void visit(ThenBranchEnd thenBranchEnd) {
+        super.visit(thenBranchEnd);
+
+        // skip else branch if it exists
+        IfElseStmt ifElseStmt = (IfElseStmt) thenBranchEnd.getParent();
+        if (ifElseStmt.getOptionalElseBranch() instanceof ElseBranch) {
+            this.positiveJumps.add(new ArrayList<>());
+            this.positiveJumps.peek().add(Code.pc + 1);
+            Code.putJump(0);
+        }
+
+        // back patch negative jumps
+        this.negativeJumps.pop().forEach(Code::fixup);
+    }
+
+    @Override
+    public void visit(LogicalOr logicalOr) {
+        super.visit(logicalOr);
+        this.positiveJumps.peek().add(Code.pc + 1);
+        Code.putJump(0);
+
+        // back patch negative jumps
+        this.negativeJumps.peek().forEach(Code::fixup);
+        this.negativeJumps.peek().clear();
+    }
+
+    @Override
+    public void visit(ConditionExprRelOp conditionExprRelOp) {
+        super.visit(conditionExprRelOp);
+        RelOp relOp = conditionExprRelOp.getRelOp();
+        int op = 0;
+        if (relOp instanceof EqualOp)
+            op = Code.eq;
+        else if (relOp instanceof NotEqualOp)
+            op = Code.ne;
+        else if (relOp instanceof GreaterOp)
+            op = Code.gt;
+        else if (relOp instanceof GreaterEqualOp)
+            op = Code.ge;
+        else if (relOp instanceof LessOp)
+            op = Code.lt;
+        else if (relOp instanceof LessEqualOp)
+            op = Code.le;
+
+        this.negativeJumps.peek().add(Code.pc + 1);
+        Code.putFalseJump(op, 0);
+    }
+
+    @Override
+    public void visit(FirstConditionExpr firstConditionExpr) {
+        super.visit(firstConditionExpr);
+        Code.loadConst(0);
+        this.negativeJumps.peek().add(Code.pc + 1);
+        Code.putFalseJump(Code.ne, 0);
+    }
+
+    @Override
+    public void visit(IfConditionStart ifConditionStart) {
+        super.visit(ifConditionStart);
+        this.negativeJumps.add(new ArrayList<>());
+        this.positiveJumps.add(new ArrayList<>());
+    }
+
+    @Override
+    public void visit(IfConditionEnd ifConditionEnd) {
+        super.visit(ifConditionEnd);
+        // back patch positive jumps
+        this.positiveJumps.pop().forEach(Code::fixup);
+    }
+
+    @Override
     public void visit(AddOpExpression addOpExpression) {
         super.visit(addOpExpression);
         AddOp addOp = addOpExpression.getAddOp();
@@ -272,6 +354,45 @@ public class CodeGenerator extends VisitorAdaptor {
         if (singleIdentifier.getParent() instanceof DesignatorArrayIndex) {
             Code.load(singleIdentifier.obj);
         }
+    }
+
+    @Override
+    public void visit(BreakStmt breakStmt) {
+        super.visit(breakStmt);
+        this.breakAddresses.peek().add(Code.pc + 1);
+        Code.putJump(0);
+    }
+
+    @Override
+    public void visit(ContinueStmt continueStmt) {
+        super.visit(continueStmt);
+        this.continueAddresses.peek().add(Code.pc + 1);
+        Code.putJump(0);
+    }
+
+    @Override
+    public void visit(DoWhileBodyStart doWhileBodyStart) {
+        super.visit(doWhileBodyStart);
+        this.doWhileBodyStartAddresses.push(Code.pc);
+        this.breakAddresses.push(new ArrayList<>());
+        this.continueAddresses.push(new ArrayList<>());
+    }
+
+    @Override
+    public void visit(DoWhileBodyEnd doWhileBodyEnd) {
+        super.visit(doWhileBodyEnd);
+        // back patch for continue statements
+        this.continueAddresses.pop().forEach(Code::fixup);
+    }
+
+    @Override
+    public void visit(DoWhileStatement doWhileStatement) {
+        super.visit(doWhileStatement);
+        Code.putJump(this.doWhileBodyStartAddresses.pop());
+
+        // back patch break statements and negative jumps
+        this.breakAddresses.pop().forEach(Code::fixup);
+        this.negativeJumps.pop().forEach(Code::fixup);
     }
 
 }
