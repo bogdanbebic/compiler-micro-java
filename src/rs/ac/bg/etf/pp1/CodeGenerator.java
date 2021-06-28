@@ -5,16 +5,20 @@ import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class CodeGenerator extends VisitorAdaptor {
 
-    private int mainPcOffset = 0;
+    private final Map<String, Integer> methodOffsets = new HashMap<>();
 
     public int getMainPcOffset() {
-        return mainPcOffset;
+        return methodOffsets.get("main");
     }
 
     private void generateCodeChr() {
         // Signature: char chr(int i);
+        this.methodOffsets.put("chr", Code.pc);
         Code.put(Code.enter);
         Code.put(1);
         Code.put(1);
@@ -27,6 +31,7 @@ public class CodeGenerator extends VisitorAdaptor {
 
     private void generateCodeOrd() {
         // Signature: int ord(char ch);
+        this.methodOffsets.put("ord", Code.pc);
         Code.put(Code.enter);
         Code.put(1);
         Code.put(1);
@@ -39,6 +44,7 @@ public class CodeGenerator extends VisitorAdaptor {
 
     private void generateCodeLen() {
         // Signature: int len(void arr[]);
+        this.methodOffsets.put("len", Code.pc);
         Code.put(Code.enter);
         Code.put(1);
         Code.put(1);
@@ -108,9 +114,7 @@ public class CodeGenerator extends VisitorAdaptor {
         super.visit(methodSignatureWithoutParams);
         String methodName = methodSignatureWithoutParams.getMethodName();
 
-        if ("main".equals(methodName)) {
-            mainPcOffset = Code.pc;
-        }
+        this.methodOffsets.put(methodName, Code.pc);
 
         Obj methodObj = methodSignatureWithoutParams.obj;
         Code.put(Code.enter);
@@ -137,6 +141,25 @@ public class CodeGenerator extends VisitorAdaptor {
     public void visit(AssignmentStmt assignmentStmt) {
         super.visit(assignmentStmt);
         Code.store(assignmentStmt.getDesignator().obj);
+    }
+
+    private void generateFunctionCall(String functionName) {
+        int functionOffset = methodOffsets.get(functionName);
+        int pcRelativeOffset = functionOffset - Code.pc;
+        Code.put(Code.call);
+        // all functions must be defined before their calls,
+        // so there is no need for back patching
+        Code.put2(pcRelativeOffset);
+    }
+
+    @Override
+    public void visit(FunctionCallStmt functionCallStmt) {
+        super.visit(functionCallStmt);
+        Designator designator = functionCallStmt.getDesignator();
+        generateFunctionCall(designator.obj.getName());
+        if (!MJSymbolTable.noType.equals(designator.obj.getType())) {
+            Code.put(Code.pop);
+        }
     }
 
     private void generateCodePostIncDec(boolean isIncrement, Designator designator) {
@@ -204,8 +227,12 @@ public class CodeGenerator extends VisitorAdaptor {
     @Override
     public void visit(DesignatorFactor designatorFactor) {
         super.visit(designatorFactor);
+        Designator designator = designatorFactor.getDesignator();
         if (designatorFactor.getOptionalFunctionCall() instanceof NoFunctionCall) {
-            Code.load(designatorFactor.getDesignator().obj);
+            Code.load(designator.obj);
+        }
+        else {
+            generateFunctionCall(designator.obj.getName());
         }
     }
 
