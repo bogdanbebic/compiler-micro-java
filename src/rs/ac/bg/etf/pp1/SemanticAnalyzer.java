@@ -831,4 +831,57 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
         log.info(msg.toString());
     }
+
+    // SYNTAX ERROR REPORTING
+
+    @Override
+    public void visit(ErroneousIfCondition erroneousIfCondition) {
+        super.visit(erroneousIfCondition);
+        report_syntax_error("Syntax error in condition before )", erroneousIfCondition);
+    }
+
+    @Override
+    public void visit(ErroneousStmt erroneousStmt) {
+        super.visit(erroneousStmt);
+        report_syntax_error("Syntax error in statement before ;", erroneousStmt);
+    }
+
+    @Override
+    public void visit(ErroneousFormalParam erroneousFormalParam) {
+        super.visit(erroneousFormalParam);
+        report_syntax_error("Syntax error declaring formal parameter before ,", erroneousFormalParam);
+    }
+
+    @Override
+    public void visit(ErroneousMethodParams erroneousMethodParams) {
+        super.visit(erroneousMethodParams);
+        report_syntax_error("Syntax error declaring formal parameter before )", erroneousMethodParams);
+    }
+
+    @Override
+    public void visit(ErroneousGlobalDecl erroneousGlobalDecl) {
+        super.visit(erroneousGlobalDecl);
+        report_syntax_error("Syntax error declaring variable before ;", erroneousGlobalDecl);
+    }
+
+    @Override
+    public void visit(ErroneousVariableDecl erroneousVariableDecl) {
+        super.visit(erroneousVariableDecl);
+        report_syntax_error("Syntax error declaring variable before ,", erroneousVariableDecl);
+    }
+
+    private void report_syntax_error(String message, SyntaxNode syntaxNode) {
+        StringBuilder msg = new StringBuilder(message);
+        int line = syntaxNode != null ? syntaxNode.getLine() : 0;
+        if (syntaxNode != null)
+            msg.append(" on line ").append(line);
+
+        log.error(msg.toString());
+        MJCompiler.getInstance().addError(new CompilerError(
+                line,
+                message,
+                CompilerError.CompilerErrorType.SYNTAX_ERROR
+        ));
+    }
+
 }
