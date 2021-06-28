@@ -837,7 +837,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(ErroneousIfCondition erroneousIfCondition) {
         super.visit(erroneousIfCondition);
-        report_syntax_error("Syntax error in condition before )", erroneousIfCondition);
+        report_syntax_error("Syntax error in condition before )", erroneousIfCondition.getParent());
     }
 
     @Override
@@ -855,7 +855,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     @Override
     public void visit(ErroneousMethodParams erroneousMethodParams) {
         super.visit(erroneousMethodParams);
-        report_syntax_error("Syntax error declaring formal parameter before )", erroneousMethodParams);
+        report_syntax_error("Syntax error declaring formal parameter before )", erroneousMethodParams.getParent());
     }
 
     @Override

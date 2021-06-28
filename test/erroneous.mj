@@ -1,0 +1,21 @@
+program erroneous
+int a 2, b;
+{
+    void f1(int arg1, int arg2 3) {}
+
+    void f2(int a1 4, int a2) {}
+
+    void f()
+        int i, j;
+        char ch;
+    {
+        ch = '0';
+        ch = 0;
+        i = ch;
+        i = ch + i;
+        i = nothing;
+        if (?) {
+            i++;
+        }
+    }
+}
